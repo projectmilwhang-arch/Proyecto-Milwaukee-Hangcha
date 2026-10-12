@@ -1,0 +1,2506 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validación de Levantamiento | Milwaukee & Hangcha</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Space Grotesk"', 'sans-serif'],
+          },
+          colors: {
+            milwaukee: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+              800: '#9f1239',
+              900: '#881337',
+              red: '#DB0000',
+              darkred: '#A80000',
+            },
+            hangcha: {
+              50: '#f0f9ff',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              blue: '#0B4F9C',
+              darkblue: '#073366',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- SheetJS for Excel export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+    .transition-all-200 {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+<body class="min-h-full flex flex-col text-slate-800 bg-slate-100 antialiased font-sans">
+
+  <!-- ========================================== -->
+  <!-- PANTALLA DE LOGIN CON LOGOS DE LAS MARCAS -->
+  <!-- ========================================== -->
+  <div id="login-screen" class="fixed inset-0 z-50 bg-slate-950 flex items-center justify-center p-4 min-h-screen">
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Logos oficiales de ambas marcas -->
+      <div class="flex items-center justify-center gap-3">
+        <div class="h-11 sm:h-12 bg-milwaukee-red rounded-xl p-1.5 border border-red-700 shadow-md flex items-center justify-center">
+          <img src="logo-milwaukee.png" alt="Milwaukee Tool" class="h-full w-auto object-contain">
+        </div>
+        <span class="text-slate-600 font-bold text-lg">×</span>
+        <div class="h-11 sm:h-12 bg-[#0B2545] rounded-xl p-1.5 border border-slate-700 shadow-md flex items-center justify-center">
+          <img src="logo-hangcha.png" alt="Hangcha Forklift" class="h-full w-auto object-contain">
+        </div>
+      </div>
+
+      <!-- Titulo del Portal -->
+      <div>
+        <h2 class="text-lg sm:text-xl font-bold text-white tracking-tight">Portal de Validación Técnica</h2>
+        <p class="text-xs text-slate-400 mt-1">Levantamiento de Flota Industrial • 85 Equipos</p>
+      </div>
+
+      <!-- Formulario de Acceso -->
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 text-left">
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Usuario</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+            <input type="text" id="login-username" required placeholder="Usuario" 
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-milwaukee-red focus:border-milwaukee-red">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Contraseña</label>
+          <div class="relative">
+            <i data-lucide="lock" class="w-4 h-4 text-slate-500 absolute left-3.5 top-3"></i>
+            <input type="password" id="login-password" required placeholder="Contraseña" 
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-milwaukee-red focus:border-milwaukee-red">
+          </div>
+        </div>
+
+        <div id="login-error" class="hidden text-xs text-rose-300 bg-rose-950/60 border border-rose-800 p-2.5 rounded-xl font-semibold text-center">
+          Usuario o contraseña incorrectos. Por favor intenta de nuevo.
+        </div>
+
+        <button type="submit" class="w-full py-3 px-4 rounded-xl font-bold text-sm bg-milwaukee-red hover:bg-milwaukee-darkred text-white shadow-lg transition-all flex items-center justify-center gap-2">
+          <span>Ingresar al Portal</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </form>
+
+      <!-- Badge de ayuda con credenciales de acceso -->
+      <div class="pt-3 border-t border-slate-800/80 text-[11px] text-slate-400 text-center">
+        <span class="block text-slate-500 font-semibold mb-1">Credenciales de Acceso:</span>
+        <code class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-mono">Usuario: milwaukee</code>
+        <span class="text-slate-600 mx-1">•</span>
+        <code class="bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-mono">Contraseña: hangcha</code>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Top Announcement / Brand Bar -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Logos and Title -->
+        <div class="flex items-center space-x-3 sm:space-x-4">
+          <div class="flex items-center space-x-2 sm:space-x-3">
+            <div class="h-9 sm:h-11 rounded-lg overflow-hidden shadow-sm border border-slate-700 bg-[#DB0000] flex items-center justify-center p-0.5" title="Milwaukee Tool">
+              <img src="logo-milwaukee.png" alt="Milwaukee Tool" class="h-full w-auto object-contain">
+            </div>
+            <span class="text-slate-500 font-bold text-xs sm:text-sm">×</span>
+            <div class="h-9 sm:h-11 rounded-lg overflow-hidden shadow-sm border border-slate-700 bg-[#0B2545] flex items-center justify-center p-0.5" title="Hangcha Forklifts">
+              <img src="logo-hangcha.png" alt="Hangcha Forklift" class="h-full w-auto object-contain">
+            </div>
+          </div>
+          <div class="hidden md:block h-6 w-px bg-slate-700"></div>
+          <div>
+            <h1 class="text-sm sm:text-lg font-bold text-white tracking-tight leading-tight flex items-center gap-2">
+              Validación de Levantamiento de Flota
+              <span class="bg-slate-800 text-slate-300 text-xs px-2 py-0.5 rounded-full border border-slate-700 hidden lg:inline-flex">
+                85 Equipos
+              </span>
+            </h1>
+            <p class="text-xs text-slate-400 hidden sm:block">
+              Verificación de modelos, capacidades y requerimientos por planta
+            </p>
+          </div>
+        </div>
+
+        <!-- Right action pills -->
+        <div class="flex items-center space-x-2 sm:space-x-3">
+          <div id="autosave-badge" class="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/80 px-2.5 py-1 rounded-full">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="hidden sm:inline font-medium">Autoguardado</span>
+          </div>
+          
+          <button onclick="goToTab('tab-export')" class="inline-flex items-center gap-1.5 bg-milwaukee-red hover:bg-milwaukee-darkred text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg shadow-sm transition-all-200">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Finalizar &</span> Enviar
+          </button>
+
+          <button onclick="logout()" class="inline-flex items-center gap-1 text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors text-xs font-semibold" title="Cerrar sesión">
+            <i data-lucide="log-out" class="w-4 h-4"></i>
+            <span class="hidden lg:inline">Salir</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Sticky Progress Banner -->
+  <section class="bg-white border-b border-slate-200 shadow-sm sticky top-16 sm:top-20 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        
+        <!-- Progress Bar & Percentage -->
+        <div class="flex-1">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-600 mb-1.5">
+            <span class="flex items-center gap-1">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-slate-500"></i>
+              Avance de Validación: <span id="progress-percent" class="text-slate-900 font-bold ml-1">0%</span>
+            </span>
+            <span class="text-slate-500">
+              <span id="reviewed-count" class="font-bold text-slate-800">0</span> de 85 equipos evaluados
+            </span>
+          </div>
+          <!-- Multi-segmented Progress Bar -->
+          <div class="w-full bg-slate-100 rounded-full h-3 flex overflow-hidden border border-slate-200 p-0.5 shadow-inner">
+            <div id="bar-approved" class="bg-emerald-500 h-full rounded-l-full transition-all duration-300" style="width: 0%" title="Aprobados"></div>
+            <div id="bar-rejected" class="bg-rose-500 h-full transition-all duration-300" style="width: 0%" title="Con Cambios"></div>
+            <div id="bar-pending" class="bg-slate-200 h-full rounded-r-full transition-all duration-300" style="width: 100%" title="Pendientes"></div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Counters -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Aprobados Counter -->
+          <button onclick="filterByStatus('approved')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/80 transition-all text-left">
+            <div class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+              <i data-lucide="check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-emerald-800 tracking-wider">Aprobados</div>
+              <div id="stat-approved" class="text-sm font-extrabold text-emerald-700 leading-none">0</div>
+            </div>
+          </button>
+
+          <!-- Rechazados / Observados Counter -->
+          <button onclick="filterByStatus('rejected')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100/80 transition-all text-left">
+            <div class="w-6 h-6 rounded-md bg-rose-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+              <i data-lucide="x" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-rose-800 tracking-wider">Con Cambios</div>
+              <div id="stat-rejected" class="text-sm font-extrabold text-rose-700 leading-none">0</div>
+            </div>
+          </button>
+
+          <!-- Pendientes Counter -->
+          <button onclick="filterByStatus('pending')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left">
+            <div class="w-6 h-6 rounded-md bg-slate-400 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-slate-600 tracking-wider">Pendientes</div>
+              <div id="stat-pending" class="text-sm font-extrabold text-slate-700 leading-none">85</div>
+            </div>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Navigation Tabs -->
+  <nav class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex space-x-1 sm:space-x-8 overflow-x-auto py-1">
+        
+        <button id="tab-btn-catalog" onclick="goToTab('tab-catalog')" class="tab-btn active-tab flex items-center gap-2 py-3 px-3 text-xs sm:text-sm font-bold border-b-2 border-milwaukee-red text-milwaukee-red whitespace-nowrap">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i>
+          1. Hojas de Datos & Validación (85)
+        </button>
+
+        <button id="tab-btn-models" onclick="goToTab('tab-models')" class="tab-btn flex items-center gap-2 py-3 px-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          2. Vista por Modelos (8)
+        </button>
+
+        <button id="tab-btn-export" onclick="goToTab('tab-export')" class="tab-btn flex items-center gap-2 py-3 px-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
+          <i data-lucide="check-square" class="w-4 h-4"></i>
+          3. Resumen & Envío a Hangcha
+          <span id="badge-tab-rejected" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
+        </button>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- ========================================== -->
+    <!-- TAB 1: CATALOGO DE EQUIPOS -->
+    <!-- ========================================== -->
+    <div id="tab-catalog" class="tab-content block space-y-4">
+      
+      <!-- Filter and Search Toolbar -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
+          
+          <!-- Search Input -->
+          <div class="lg:col-span-4 relative">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
+            <input type="text" id="filter-search" oninput="renderCards()" placeholder="Buscar #, modelo, departamento..." 
+              class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50">
+          </div>
+
+          <!-- Planta Filter -->
+          <div class="lg:col-span-2">
+            <select id="filter-planta" onchange="renderCards()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+              <option value="">Todas las Plantas</option>
+              <option value="Golden">Planta Golden</option>
+              <option value="Planta 1">Planta 1</option>
+              <option value="Planta 2">Planta 2</option>
+            </select>
+          </div>
+
+          <!-- Modelo Filter -->
+          <div class="lg:col-span-2">
+            <select id="filter-modelo" onchange="renderCards()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+              <option value="">Todos los Modelos</option>
+              <option value="DR16LI">DR16LI (42)</option>
+              <option value="BT45LI">BT45LI (12)</option>
+              <option value="FPG25">FPG25 [Gas] (10)</option>
+              <option value="FBT20LI">FBT20LI (7)</option>
+              <option value="FBEE25LI">FBEE25LI (7)</option>
+              <option value="OPM02LI">OPM02LI (4)</option>
+              <option value="CBD20-WD">CBD20-WD (2)</option>
+              <option value="MJ20">MJ20 (Mima) (1)</option>
+            </select>
+          </div>
+
+          <!-- Department Filter -->
+          <div class="lg:col-span-2">
+            <select id="filter-depto" onchange="renderCards()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+              <option value="">Departamentos (Todos)</option>
+              <option value="Warehouse">Warehouse (50)</option>
+              <option value="CI">CI (22)</option>
+              <option value="Shipping">Shipping (5)</option>
+              <option value="Test Lab">Test Lab (5)</option>
+              <option value="Relevo">Relevo (2)</option>
+              <option value="EHS">EHS (1)</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="lg:col-span-2">
+            <select id="filter-status" onchange="renderCards()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+              <option value="">Estado: Todos</option>
+              <option value="pending">⏳ Solo Pendientes</option>
+              <option value="approved">✅ Solo Aprobados</option>
+              <option value="rejected">❌ Solo Con Cambios</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Secondary Toolbar: Quick Bulk Actions & Views -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+          
+          <div class="flex items-center gap-2 text-slate-500">
+            <span>Mostrando <strong id="visible-count" class="text-slate-800">85</strong> equipos</span>
+            <span class="text-slate-300">•</span>
+            <button onclick="resetFilters()" class="text-milwaukee-red hover:underline font-semibold flex items-center gap-1">
+              <i data-lucide="rotate-ccw" class="w-3 h-3"></i> Limpiar filtros
+            </button>
+          </div>
+
+          <!-- Bulk actions -->
+          <div class="flex items-center gap-2">
+            <button onclick="bulkApproveVisible()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold transition-all shadow-sm" title="Aprueba con Paloma todos los equipos que se muestran actualmente">
+              <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
+              Aprobar visibles con Paloma
+            </button>
+            
+            <div class="h-4 w-px bg-slate-300"></div>
+
+            <!-- View Mode Switch -->
+            <div class="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5">
+              <button id="view-mode-table" onclick="setViewMode('table')" class="p-1.5 px-2.5 rounded bg-white text-slate-800 shadow-sm flex items-center gap-1.5 text-xs font-bold" title="Vista Hoja de Datos (Tabla)">
+                <i data-lucide="table" class="w-3.5 h-3.5 text-milwaukee-red"></i>
+                <span class="hidden sm:inline">Hoja de Datos</span>
+              </button>
+              <button id="view-mode-grid" onclick="setViewMode('grid')" class="p-1.5 px-2.5 rounded text-slate-500 hover:text-slate-800 flex items-center gap-1.5 text-xs font-semibold" title="Vista Fichas">
+                <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                <span class="hidden sm:inline">Fichas</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Instruction Hint Banner -->
+      <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 flex items-start gap-3">
+        <div class="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs sm:text-sm text-blue-900">
+          <p class="font-bold">¿Cómo validar los equipos?</p>
+          <p class="text-blue-800 text-xs mt-0.5">
+            Revisa cada montacargas. Si el modelo y las capacidades son correctos, haz clic en la <strong>Paloma (Aprobar)</strong>. Si requiere alguna corrección de mástil, tonelaje, cargador o reubicación, haz clic en la <strong>Tacha (Rechazar / Cambiar)</strong> para escribir tu observación.
+          </p>
+        </div>
+      </div>
+
+      <!-- Equipment Grid / Table Container -->
+      <div id="equipment-container" class="space-y-4">
+        <!-- Dynamically injected via JS -->
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: VISTA POR MODELOS -->
+    <!-- ========================================== -->
+    <div id="tab-models" class="tab-content hidden space-y-6">
+      
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="layers" class="w-5 h-5 text-hangcha-blue"></i>
+          Validación Agrupada por Familia de Modelo
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">
+          Valida rápidamente en bloque los modelos que cumplen en su totalidad con las especificaciones técnicas requeridas.
+        </p>
+      </div>
+
+      <div id="models-summary-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <!-- Injected via JS -->
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: RESUMEN Y ENVÍO A HANGCHA -->
+    <!-- ========================================== -->
+    <div id="tab-export" class="tab-content hidden space-y-6">
+      
+      <!-- Top Status Banner -->
+      <div id="export-header-card" class="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-6 rounded-2xl shadow-lg border border-slate-700">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <div class="h-7 rounded overflow-hidden bg-[#DB0000] p-0.5 border border-slate-700 inline-flex items-center">
+                <img src="logo-milwaukee.png" alt="Milwaukee" class="h-full w-auto object-contain">
+              </div>
+              <span class="text-slate-500 font-bold text-xs">×</span>
+              <div class="h-7 rounded overflow-hidden bg-[#0B2545] p-0.5 border border-slate-700 inline-flex items-center">
+                <img src="logo-hangcha.png" alt="Hangcha" class="h-full w-auto object-contain">
+              </div>
+              <span class="ml-1 inline-block bg-slate-800 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded tracking-wide uppercase border border-slate-700">
+                Reporte Oficial de Cierre
+              </span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold tracking-tight">
+              Resumen Final de Validación Técnica
+            </h2>
+            <p class="text-slate-300 text-xs sm:text-sm mt-1">
+              Genera tu archivo de validación oficial para compartirlo con el equipo de Hangcha.
+            </p>
+          </div>
+          <div class="flex items-center gap-4 bg-slate-800/80 border border-slate-700 p-4 rounded-xl">
+            <div class="text-center">
+              <div class="text-2xl font-extrabold text-emerald-400" id="final-approved-stat">0</div>
+              <div class="text-[11px] font-semibold text-slate-400">Aprobados</div>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="text-center">
+              <div class="text-2xl font-extrabold text-rose-400" id="final-rejected-stat">0</div>
+              <div class="text-[11px] font-semibold text-slate-400">Con Cambios</div>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
+            <div class="text-center">
+              <div class="text-2xl font-extrabold text-amber-400" id="final-pending-stat">85</div>
+              <div class="text-[11px] font-semibold text-slate-400">Pendientes</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviewer Identification Form -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <i data-lucide="user-check" class="w-5 h-5 text-milwaukee-red"></i>
+          Datos del Revisor de Planta (Cliente)
+        </h3>
+        <p class="text-xs text-slate-500">
+          Esta información se anexará al archivo Excel y al reporte oficial de validación.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Nombre Completo</label>
+            <input type="text" id="reviewer-name" oninput="saveReviewerInfo()" placeholder="Ej. Ing. Carlos Mendoza" 
+              class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Puesto / Área</label>
+            <input type="text" id="reviewer-title" oninput="saveReviewerInfo()" placeholder="Ej. Gerente de Operaciones / Mantenimiento" 
+              class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Teléfono / WhatsApp</label>
+            <input type="text" id="reviewer-phone" oninput="saveReviewerInfo()" placeholder="Ej. +52 81 1234 5678" 
+              class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Comentarios Generales del Proyecto (Opcional)</label>
+          <textarea id="reviewer-general-notes" oninput="saveReviewerInfo()" rows="2" placeholder="Agregue consideraciones generales de entrega, condiciones de piso o requerimientos adicionales..." 
+            class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Buttons Grid (How Hangcha receives the info) -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="share-2" class="w-5 h-5 text-hangcha-blue"></i>
+              Opciones para Enviar la Validación a Hangcha
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              El reporte se enviará por correo a <strong>projectmilwhang@gmail.com</strong> y por WhatsApp al número seleccionado.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              <i data-lucide="mail" class="w-3.5 h-3.5 text-milwaukee-red"></i> projectmilwhang@gmail.com
+            </span>
+          </div>
+        </div>
+
+        <!-- WhatsApp Destination Number Input -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div class="flex items-center gap-2 shrink-0">
+            <div class="w-8 h-8 rounded-lg bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+              <i data-lucide="message-circle" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-800">Número de WhatsApp de Envío</div>
+              <div class="text-[11px] text-slate-500">Ingresa el teléfono de destino o déjalo en blanco para elegirlo en WhatsApp</div>
+            </div>
+          </div>
+          <div class="flex-1">
+            <input type="text" id="target-whatsapp-number" placeholder="Ej. +52 81 1234 5678 (con lada de país)" 
+              class="w-full text-xs sm:text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-600 bg-white font-medium">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- 1. Download Excel -->
+          <button onclick="exportToExcel()" class="flex flex-col items-start p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/60 hover:bg-emerald-100/80 transition-all text-left group shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs uppercase font-extrabold text-emerald-800 tracking-wider">Recomendado</span>
+            <span class="text-sm font-bold text-slate-900 mt-0.5">Descargar Excel Validado</span>
+            <span class="text-xs text-slate-600 mt-1">Genera archivo .XLSX con los 85 equipos y columna de decisión + comentarios.</span>
+          </button>
+
+          <!-- 2. Send via WhatsApp -->
+          <button onclick="sendViaWhatsApp()" class="flex flex-col items-start p-4 rounded-xl border-2 border-green-500 bg-green-50/60 hover:bg-green-100/80 transition-all text-left group shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="message-circle" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs uppercase font-extrabold text-green-800 tracking-wider">Inmediato</span>
+            <span class="text-sm font-bold text-slate-900 mt-0.5">Enviar por WhatsApp</span>
+            <span class="text-xs text-slate-600 mt-1">Envía mensaje preformateado a Hangcha con desglose de equipos con cambio.</span>
+          </button>
+
+          <!-- 3. Send via Email -->
+          <button onclick="sendViaEmail()" class="flex flex-col items-start p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-slate-800 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="mail" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs uppercase font-extrabold text-milwaukee-red tracking-wider">projectmilwhang@gmail.com</span>
+            <span class="text-sm font-bold text-slate-900 mt-0.5">Enviar por Correo</span>
+            <span class="text-xs text-slate-600 mt-1">Envía el reporte completo directamente a projectmilwhang@gmail.com.</span>
+          </button>
+
+          <!-- 4. Copy Summary -->
+          <button onclick="copySummaryText()" class="flex flex-col items-start p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group shadow-sm">
+            <div class="w-10 h-10 rounded-lg bg-slate-700 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="copy" class="w-5 h-5"></i>
+            </div>
+            <span class="text-xs uppercase font-extrabold text-slate-600 tracking-wider">Portapapeles</span>
+            <span class="text-sm font-bold text-slate-900 mt-0.5">Copiar Resumen</span>
+            <span class="text-xs text-slate-600 mt-1">Copia el texto estructurado para pegar en Teams, Notion o chat.</span>
+          </button>
+
+        </div>
+
+        <!-- Secondary backup utilities -->
+        <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <button onclick="exportJSONBackup()" class="text-slate-600 hover:text-slate-900 flex items-center gap-1 font-semibold">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Guardar respaldo JSON
+            </button>
+            <span class="text-slate-300">•</span>
+            <label class="text-slate-600 hover:text-slate-900 flex items-center gap-1 font-semibold cursor-pointer">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Cargar respaldo JSON
+              <input type="file" id="json-file-input" onchange="importJSONBackup(event)" accept=".json" class="hidden">
+            </label>
+          </div>
+          <div>
+            <button onclick="resetAllValidation()" class="text-rose-600 hover:text-rose-800 flex items-center gap-1 font-semibold">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reiniciar todas las respuestas
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Detailed Breakdown of Rejected / Changed Equipment -->
+      <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-500"></i>
+            Equipos con Cambios Solicitados (<span id="rejected-count-badge">0</span>)
+          </h3>
+          <span class="text-xs text-slate-500">Observaciones detalladas registradas por el cliente</span>
+        </div>
+
+        <div id="rejected-list-container" class="space-y-3">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Sticky Mobile Action Footer -->
+  <div class="md:hidden sticky bottom-0 bg-white/95 backdrop-blur border-t border-slate-200 p-3 z-30 shadow-lg">
+    <div class="flex items-center justify-between gap-2">
+      <div class="text-xs">
+        <span class="font-bold text-slate-800" id="mobile-reviewed-count">0</span> de 85 validados
+      </div>
+      <button onclick="goToTab('tab-export')" class="bg-milwaukee-red text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1.5 shadow">
+        <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        Finalizar Envío
+      </button>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+    <div class="max-w-7xl mx-auto px-4">
+      <p class="font-medium">
+        Proyecto Levantamiento de Flota Milwaukee Tool & Hangcha • Preparado para Validación en Terreno
+      </p>
+      <p class="text-[11px] text-slate-400 mt-1">
+        Diseñado para despliegue estático en GitHub Pages • Compatible con navegadores móviles y de escritorio
+      </p>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+    <div class="bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-800">
+      <span id="toast-icon"></span>
+      <span id="toast-message">Notificación</span>
+    </div>
+  </div>
+
+  <!-- APPLICATION SCRIPT & DATA -->
+  <script>
+    // --- 1. DATASET EMBEDDED ---
+    const rawEquipment = [{"id": 1, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 2, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 3, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 4, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 5, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 6, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 7, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 8, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 9, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 10, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 11, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 12, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 13, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 14, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 15, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Golden"}, {"id": 16, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 17, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 18, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 19, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 20, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 21, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 22, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 23, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 24, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 25, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 26, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Shipping", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 27, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Shipping", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 28, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Shipping", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 29, "marca": "Hangcha", "modelo": "FBT20LI", "categoria": "Forklift", "tipo": "Hombre sentado (3 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "480V", "depto": "Shipping", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 30, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 31, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 32, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 33, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "480V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 34, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 35, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Test Lab", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 36, "marca": "Mima", "modelo": "MJ20", "categoria": "Forklift", "tipo": "Montacargas Articulado (4 Ruedas)", "capacidadCarga": "2", "capacidadAltura": "6", "combustible": "Electric", "cargador": "480V", "depto": "Shipping", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 37, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Planta 2"}, {"id": 38, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Planta 1"}, {"id": 39, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Planta 2"}, {"id": 40, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 41, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Golden", "planta2": "Golden"}, {"id": 42, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 43, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 44, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 45, "marca": "Hangcha", "modelo": "CBD20-WD", "categoria": "Pallet Jack", "tipo": "Patín Electrico", "capacidadCarga": "2", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 46, "marca": "Hangcha", "modelo": "CBD20-WD", "categoria": "Pallet Jack", "tipo": "Patín Electrico", "capacidadCarga": "2", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 47, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 48, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 49, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 50, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 51, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 52, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 53, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 54, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 55, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 56, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 57, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 58, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 59, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 60, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 61, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 62, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 63, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 64, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 65, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 66, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Warehouse", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 67, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 68, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 69, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 70, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 71, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 72, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "220V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 73, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "440V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 74, "marca": "Hangcha", "modelo": "BT45LI", "categoria": "Tugger Train", "tipo": "Tugger (Carro de arrastre)", "capacidadCarga": "4.5", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "440V", "depto": "CI", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 75, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "EHS", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 76, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Test Lab", "planta1": "Golden", "planta2": "Planta 2"}, {"id": 77, "marca": "Hangcha", "modelo": "FPG25", "categoria": "Forklift", "tipo": "Hombre sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Gas", "cargador": "220V", "depto": "Test Lab", "planta1": "Planta 2", "planta2": "Planta 2"}, {"id": 78, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas)", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Test Lab", "planta1": "Planta 2", "planta2": "Planta 1"}, {"id": 79, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas)", "capacidadCarga": "2.5", "capacidadAltura": "4.5", "combustible": "Electric", "cargador": "220V", "depto": "Test Lab", "planta1": "Golden", "planta2": "Golden"}, {"id": 80, "marca": "Hangcha", "modelo": "OPM02LI", "categoria": "Order Picker", "tipo": "Estibador", "capacidadCarga": "0.6", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "110V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 81, "marca": "Hangcha", "modelo": "OPM02LI", "categoria": "Order Picker", "tipo": "Estibador", "capacidadCarga": "0.6", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "110V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 2"}, {"id": 82, "marca": "Hangcha", "modelo": "OPM02LI", "categoria": "Order Picker", "tipo": "Estibador", "capacidadCarga": "0.6", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "110V", "depto": "CI", "planta1": "Planta 1", "planta2": "Golden"}, {"id": 83, "marca": "Hangcha", "modelo": "OPM02LI", "categoria": "Order Picker", "tipo": "Estibador", "capacidadCarga": "0.6", "capacidadAltura": "N/D", "combustible": "Electric", "cargador": "110V", "depto": "CI", "planta1": "Planta 1", "planta2": "Planta 1"}, {"id": 84, "marca": "Hangcha", "modelo": "FBEE25LI", "categoria": "Forklift", "tipo": "Hombre Sentado (4 Ruedas) - Relevo", "capacidadCarga": "2.5", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "220V", "depto": "Relevo", "planta1": "Planta 2", "planta2": "All Plant"}, {"id": 85, "marca": "Hangcha", "modelo": "DR16LI", "categoria": "Forklift", "tipo": "Hombre parado (4 Ruedas) - Relevo", "capacidadCarga": "1.6", "capacidadAltura": "7.6", "combustible": "Electric", "cargador": "480V", "depto": "Relevo", "planta1": "Planta 2", "planta2": "All Plant"}];
+
+    // --- MODEL ASSETS & TECHNICAL DATASHEETS ---
+    const MODEL_ASSETS = {
+      'DR16LI': {
+        image: 'DR16LI.png',
+        pdf: 'DR16LI.pdf',
+        seriesName: 'Reach Truck Hombre Parado Li-Ion',
+        tagline: 'Mástil telescópico de gran altura, radio de giro ultracorto y batería de litio integrada.',
+        specs: {
+          'Capacidad Nominal': '1.6 Ton (1,600 kg)',
+          'Altura Máxima Mástil': '7.6 m',
+          'Tipo de Operación': 'Hombre Parado (4 Ruedas)',
+          'Tecnología de Batería': 'Lithium-ion LiFePO4',
+          'Voltaje de Cargador': '480V / 220V Trifásico',
+          'Aplicación': 'Almacén de alta densidad / Racks'
+        }
+      },
+      'BT45LI': {
+        image: 'BT45LI.png',
+        pdf: 'BT45LI.pdf',
+        seriesName: 'Tugger / Carro de Arrastre Eléctrico Li-Ion',
+        tagline: 'Tractor de arrastre industrial para trenes logísticos internos de alta capacidad.',
+        specs: {
+          'Capacidad de Arrastre': '4.5 Ton (4,500 kg)',
+          'Altura de Elevación': 'N/D (Carro de Arrastre)',
+          'Tipo de Operación': 'Hombre Parado / Plataforma',
+          'Tecnología de Batería': 'Lithium-ion LiFePO4',
+          'Voltaje de Cargador': '440V / 480V / 220V',
+          'Aplicación': 'Rutas logísticas CI y ensamble'
+        }
+      },
+      'FPG25': {
+        image: 'FPG25.png',
+        pdf: 'FPG25.pdf',
+        seriesName: 'Montacargas Contrabalanceado a Gas LP',
+        tagline: 'Motor de combustión interna Gas LP de alto torque para patios, rampas y áreas abiertas.',
+        specs: {
+          'Capacidad Nominal': '2.5 Ton (2,500 kg)',
+          'Altura de Mástil': '4.5 m (Mástil Triplex)',
+          'Tipo de Operación': 'Hombre Sentado (4 Ruedas)',
+          'Combustible': 'Gas LP / Combustión Dual',
+          'Voltaje Auxiliar': '220V',
+          'Aplicación': 'Almacén exterior, EHS y patios'
+        }
+      },
+      'FBT20LI': {
+        image: 'FBT20LI.png',
+        pdf: 'FBT20LI.pdf',
+        seriesName: 'Montacargas Contrabalanceado 3 Ruedas Li-Ion',
+        tagline: 'Tracción delantera dual, máxima maniobrabilidad en pasillo angosto y carga rápida de litio.',
+        specs: {
+          'Capacidad Nominal': '2.0 Ton (2,000 kg)',
+          'Altura de Mástil': '4.5 m',
+          'Tipo de Operación': 'Hombre Sentado (3 Ruedas)',
+          'Tecnología de Batería': 'Lithium-ion 80V',
+          'Voltaje de Cargador': '480V Carga Rápida',
+          'Aplicación': 'Almacén y Embarques (Shipping)'
+        }
+      },
+      'FBEE25LI': {
+        image: 'FBEE25LI.png',
+        pdf: 'FBEE25LI.pdf',
+        seriesName: 'Montacargas Contrabalanceado 4 Ruedas Li-Ion FBEE25LI',
+        tagline: 'Desempeño equivalente a combustión con cero emisiones y estabilidad superior en tarimas pesadas.',
+        specs: {
+          'Capacidad Nominal': '2.5 Ton (2,500 kg)',
+          'Altura de Mástil': '4.5 m / 7.6 m',
+          'Tipo de Operación': 'Hombre Sentado (4 Ruedas)',
+          'Tecnología de Batería': 'Lithium-ion 80V LiFePO4',
+          'Voltaje de Cargador': '220V Trifásico',
+          'Aplicación': 'Almacén general, Test Lab y Relevo'
+        }
+      },
+      'FBE25LI': {
+        image: 'FBEE25LI.png',
+        pdf: 'FBEE25LI.pdf',
+        seriesName: 'Montacargas Contrabalanceado 4 Ruedas Li-Ion FBEE25LI',
+        tagline: 'Desempeño equivalente a combustión con cero emisiones y estabilidad superior en tarimas pesadas.',
+        specs: {
+          'Capacidad Nominal': '2.5 Ton (2,500 kg)',
+          'Altura de Mástil': '4.5 m / 7.6 m',
+          'Tipo de Operación': 'Hombre Sentado (4 Ruedas)',
+          'Tecnología de Batería': 'Lithium-ion 80V LiFePO4',
+          'Voltaje de Cargador': '220V Trifásico',
+          'Aplicación': 'Almacén general, Test Lab y Relevo'
+        }
+      },
+      'OPM02LI': {
+        image: 'OPM02LI.png',
+        pdf: 'OPM02LI.pdf',
+        seriesName: 'Estibador / Order Picker Eléctrico Li-Ion OPM02LI',
+        tagline: 'Preparador de pedidos ergonómico y estibador compacto para pasillos reducidos.',
+        specs: {
+          'Capacidad Nominal': '0.6 Ton (600 kg)',
+          'Altura de Plataforma': 'N/D / Mástil Compacto',
+          'Tipo de Operación': 'Estibador Eléctrico Acompañante',
+          'Tecnología de Batería': 'Lithium-ion 24V',
+          'Voltaje de Cargador': '110V Monofásico',
+          'Aplicación': 'Picking ligero y surtido continuo CI'
+        }
+      },
+      'OPM01LI': {
+        image: 'OPM02LI.png',
+        pdf: 'OPM02LI.pdf',
+        seriesName: 'Estibador / Order Picker Eléctrico Li-Ion OPM02LI',
+        tagline: 'Preparador de pedidos ergonómico y estibador compacto para pasillos reducidos.',
+        specs: {
+          'Capacidad Nominal': '0.6 Ton (600 kg)',
+          'Altura de Plataforma': 'N/D / Mástil Compacto',
+          'Tipo de Operación': 'Estibador Eléctrico Acompañante',
+          'Tecnología de Batería': 'Lithium-ion 24V',
+          'Voltaje de Cargador': '110V Monofásico',
+          'Aplicación': 'Picking ligero y surtido continuo CI'
+        }
+      },
+      'CBD20-WD': {
+        image: 'CBD20-WD.png',
+        pdf: 'CBD20-WD.pdf',
+        seriesName: 'Patín Eléctrico Industrial Li-Ion',
+        tagline: 'Traslado horizontal ágil de tarimas con timón ergonómico y recarga de oportunidad.',
+        specs: {
+          'Capacidad Nominal': '2.0 Ton (2,000 kg)',
+          'Altura de Elevación': 'Estándar Patín (N/D)',
+          'Tipo de Operación': 'Patín Eléctrico (Walkie)',
+          'Tecnología de Batería': 'Lithium-ion 24V',
+          'Voltaje de Cargador': '220V / 110V',
+          'Aplicación': 'Recepción y traslado de tarimas'
+        }
+      },
+      'MJ20': {
+        image: 'MJ20.png',
+        pdf: 'MJ20.pdf',
+        seriesName: 'Montacargas Articulado VNA Mima MJ20',
+        tagline: 'Mástil articulado para pasillos muy estrechos (VNA) hasta 1.8m y gran altura de elevación.',
+        specs: {
+          'Capacidad Nominal': '2.0 Ton (2,000 kg)',
+          'Altura de Mástil': '6.0 m',
+          'Tipo de Operación': 'Montacargas Articulado (4 Ruedas)',
+          'Marca Fabricante': 'Mima',
+          'Tecnología': 'Eléctrico AC Industrial',
+          'Voltaje de Cargador': '480V',
+          'Aplicación': 'Pasillos muy estrechos / Shipping Planta 2'
+        }
+      },
+      '20SE': {
+        image: 'MJ20.png',
+        pdf: 'MJ20.pdf',
+        seriesName: 'Montacargas Articulado VNA Mima MJ20',
+        tagline: 'Mástil articulado para pasillos muy estrechos (VNA) hasta 1.8m y gran altura de elevación.',
+        specs: {
+          'Capacidad Nominal': '2.0 Ton (2,000 kg)',
+          'Altura de Mástil': '6.0 m',
+          'Tipo de Operación': 'Montacargas Articulado (4 Ruedas)',
+          'Marca Fabricante': 'Mima',
+          'Tecnología': 'Eléctrico AC Industrial',
+          'Voltaje de Cargador': '480V',
+          'Aplicación': 'Pasillos muy estrechos / Shipping Planta 2'
+        }
+      }
+    };
+
+
+    // --- 2. LOCAL STORAGE STATE ---
+    const STORAGE_KEY = 'milwaukee_hangcha_validation_v3';
+    const REVIEWER_KEY = 'milwaukee_hangcha_reviewer_v3';
+
+    let validationState = {};
+    let reviewerInfo = {
+      name: '',
+      title: '',
+      phone: '',
+      generalNotes: ''
+    };
+
+    let currentViewMode = 'table'; // 'grid' or 'table'
+    let currentFilterStatus = ''; // '' or 'approved' or 'rejected' or 'pending'
+
+    // Load saved states
+    function loadPersistedData() {
+      try {
+        const savedVal = localStorage.getItem(STORAGE_KEY);
+        if (savedVal) {
+          validationState = JSON.parse(savedVal);
+        }
+        const savedRev = localStorage.getItem(REVIEWER_KEY);
+        if (savedRev) {
+          reviewerInfo = JSON.parse(savedRev);
+          document.getElementById('reviewer-name').value = reviewerInfo.name || '';
+          document.getElementById('reviewer-title').value = reviewerInfo.title || '';
+          document.getElementById('reviewer-phone').value = reviewerInfo.phone || '';
+          document.getElementById('reviewer-general-notes').value = reviewerInfo.generalNotes || '';
+        }
+      } catch (e) {
+        console.error('Error loading localStorage:', e);
+      }
+    }
+
+    function saveValidationState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(validationState));
+        updateProgress();
+        showAutosavePulse();
+      } catch (e) {
+        console.error('Error saving localStorage:', e);
+      }
+    }
+
+    function saveReviewerInfo() {
+      reviewerInfo = {
+        name: document.getElementById('reviewer-name').value,
+        title: document.getElementById('reviewer-title').value,
+        phone: document.getElementById('reviewer-phone').value,
+        generalNotes: document.getElementById('reviewer-general-notes').value
+      };
+      localStorage.setItem(REVIEWER_KEY, JSON.stringify(reviewerInfo));
+      showAutosavePulse();
+    }
+
+    function showAutosavePulse() {
+      const badge = document.getElementById('autosave-badge');
+      badge.classList.add('bg-emerald-900');
+      setTimeout(() => {
+        badge.classList.remove('bg-emerald-900');
+      }, 500);
+    }
+
+    // --- 3. TOAST HELPER ---
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-message');
+      const toastIcon = document.getElementById('toast-icon');
+      
+      toastMsg.textContent = msg;
+      if (type === 'success') {
+        toastIcon.innerHTML = '<span class="text-emerald-400">✓</span>';
+      } else if (type === 'warn') {
+        toastIcon.innerHTML = '<span class="text-amber-400">⚠</span>';
+      } else {
+        toastIcon.innerHTML = '<span class="text-rose-400">✕</span>';
+      }
+      
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+      
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3000);
+    }
+
+    // --- 4. TABS NAVIGATION ---
+    function goToTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('block');
+      });
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-milwaukee-red', 'text-milwaukee-red', 'font-bold');
+        btn.classList.add('border-transparent', 'text-slate-500', 'font-semibold');
+      });
+
+      const target = document.getElementById(tabId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('block');
+      }
+
+      const btnMap = {
+        'tab-catalog': 'tab-btn-catalog',
+        'tab-models': 'tab-btn-models',
+        'tab-export': 'tab-btn-export'
+      };
+      const activeBtn = document.getElementById(btnMap[tabId] || (tabId === 'tab-models' ? 'tab-btn-models' : 'tab-btn-catalog'));
+      if (activeBtn) {
+        activeBtn.classList.add('border-milwaukee-red', 'text-milwaukee-red', 'font-bold');
+        activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-semibold');
+      }
+
+      if (tabId === 'tab-models') {
+        renderModelsSummary();
+      } else if (tabId === 'tab-export') {
+        renderExportSummary();
+      }
+
+      lucide.createIcons();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // --- 5. VALIDATION ACTIONS ---
+    function setItemStatus(id, status) {
+      if (!validationState[id]) {
+        validationState[id] = { status: null, notes: '', tags: [], timestamp: null };
+      }
+
+      // Toggle off if clicking the same
+      if (validationState[id].status === status) {
+        validationState[id].status = null;
+      } else {
+        validationState[id].status = status;
+        validationState[id].timestamp = new Date().toISOString();
+      }
+
+      saveValidationState();
+      renderCards();
+
+      // Check for celebration if all 85 are completed
+      checkCompletionCelebration();
+    }
+
+    function resetItemStatus(id) {
+      if (validationState[id]) {
+        validationState[id].status = null;
+        validationState[id].notes = '';
+        validationState[id].tags = [];
+        validationState[id].timestamp = null;
+        saveValidationState();
+        renderCards();
+      }
+    }
+
+    function updateItemNotes(id, text) {
+      if (!validationState[id]) {
+        validationState[id] = { status: 'rejected', notes: '', tags: [], timestamp: new Date().toISOString() };
+      }
+      validationState[id].notes = text;
+      saveValidationState();
+    }
+
+    function toggleItemTag(id, tag) {
+      if (!validationState[id]) {
+        validationState[id] = { status: 'rejected', notes: '', tags: [], timestamp: new Date().toISOString() };
+      }
+      if (!validationState[id].tags) validationState[id].tags = [];
+      const idx = validationState[id].tags.indexOf(tag);
+      if (idx > -1) {
+        validationState[id].tags.splice(idx, 1);
+      } else {
+        validationState[id].tags.push(tag);
+      }
+      saveValidationState();
+      renderCards();
+    }
+
+    
+    function bulkApproveOperacion() {
+      const operacionItems = rawEquipment.filter(it => it.depto !== 'Relevo' && !it.tipo.includes('Relevo'));
+      const ok = confirm(`¿Deseas marcar con Paloma (Aprobar) los ${operacionItems.length} equipos de Operación?`);
+      if (!ok) return;
+      const now = new Date().toISOString();
+      operacionItems.forEach(it => {
+        if (!validationState[it.id]) {
+          validationState[it.id] = { status: 'approved', notes: '', tags: [], timestamp: now };
+        } else {
+          validationState[it.id].status = 'approved';
+          validationState[it.id].timestamp = now;
+        }
+      });
+      saveValidationState();
+      renderCards();
+      showToast(`${operacionItems.length} equipos de Operación aprobados con Paloma`, 'success');
+      checkCompletionCelebration();
+    }
+
+    function bulkApproveRelevo() {
+      const relevoItems = rawEquipment.filter(it => it.depto === 'Relevo' || it.tipo.includes('Relevo'));
+      const ok = confirm(`¿Deseas marcar con Paloma (Aprobar) los ${relevoItems.length} equipos de Relevo?`);
+      if (!ok) return;
+      const now = new Date().toISOString();
+      relevoItems.forEach(it => {
+        if (!validationState[it.id]) {
+          validationState[it.id] = { status: 'approved', notes: '', tags: [], timestamp: now };
+        } else {
+          validationState[it.id].status = 'approved';
+          validationState[it.id].timestamp = now;
+        }
+      });
+      saveValidationState();
+      renderCards();
+      showToast(`${relevoItems.length} equipos de Relevo aprobados con Paloma`, 'success');
+      checkCompletionCelebration();
+    }
+    
+    function bulkApproveVisible() {
+      const visibleItems = getFilteredItems();
+      if (visibleItems.length === 0) return;
+      
+      const confirmAction = confirm(`¿Deseas marcar con Paloma (Aprobar) los ${visibleItems.length} equipos que están visibles actualmente?`);
+      if (!confirmAction) return;
+
+      const now = new Date().toISOString();
+      visibleItems.forEach(item => {
+        if (!validationState[item.id]) {
+          validationState[item.id] = { status: 'approved', notes: '', tags: [], timestamp: now };
+        } else {
+          validationState[item.id].status = 'approved';
+          validationState[item.id].timestamp = now;
+        }
+      });
+
+      saveValidationState();
+      renderCards();
+      showToast(`${visibleItems.length} equipos aprobados con éxito`);
+      checkCompletionCelebration();
+    }
+
+    function checkCompletionCelebration() {
+      let count = 0;
+      rawEquipment.forEach(item => {
+        if (validationState[item.id] && validationState[item.id].status) count++;
+      });
+      if (count === 85) {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 }
+        });
+        showToast('¡Felicidades! Has evaluado los 85 equipos al 100%', 'success');
+      }
+    }
+
+    // --- 6. FILTERING & RENDERING ---
+    function getFilteredItems() {
+      const search = (document.getElementById('filter-search')?.value || '').toLowerCase().trim();
+      const planta = document.getElementById('filter-planta')?.value || '';
+      const modelo = document.getElementById('filter-modelo')?.value || '';
+      const depto = document.getElementById('filter-depto')?.value || '';
+      const statusFilter = currentFilterStatus || document.getElementById('filter-status')?.value || '';
+
+      return rawEquipment.filter(item => {
+        // Search
+        if (search) {
+          const matchId = String(item.id) === search || (`#${item.id}`).includes(search);
+          const matchModelo = item.modelo.toLowerCase().includes(search);
+          const matchTipo = item.tipo.toLowerCase().includes(search);
+          const matchDepto = item.depto.toLowerCase().includes(search);
+          const matchPlanta = (item.planta1 + ' ' + item.planta2).toLowerCase().includes(search);
+          if (!matchId && !matchModelo && !matchTipo && !matchDepto && !matchPlanta) return false;
+        }
+
+        // Planta
+        if (planta) {
+          if (item.planta1 !== planta && item.planta2 !== planta) return false;
+        }
+
+        // Modelo
+        if (modelo && item.modelo !== modelo) return false;
+
+        // Depto
+        if (depto && item.depto !== depto) return false;
+
+        // Status
+        const st = validationState[item.id]?.status || 'pending';
+        if (statusFilter === 'approved' && st !== 'approved') return false;
+        if (statusFilter === 'rejected' && st !== 'rejected') return false;
+        if (statusFilter === 'pending' && st !== 'pending' && st !== null) return false;
+
+        return true;
+      });
+    }
+
+    function filterByStatus(st) {
+      currentFilterStatus = (currentFilterStatus === st) ? '' : st;
+      const select = document.getElementById('filter-status');
+      if (select) select.value = currentFilterStatus;
+      goToTab('tab-catalog');
+      renderCards();
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-planta').value = '';
+      document.getElementById('filter-modelo').value = '';
+      document.getElementById('filter-depto').value = '';
+      document.getElementById('filter-status').value = '';
+      currentFilterStatus = '';
+      renderCards();
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      const btnGrid = document.getElementById('view-mode-grid');
+      const btnTable = document.getElementById('view-mode-table');
+      if (mode === 'grid') {
+        btnGrid.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+        btnGrid.classList.remove('text-slate-500');
+        btnTable.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+        btnTable.classList.add('text-slate-500');
+      } else {
+        btnTable.classList.add('bg-white', 'text-slate-800', 'shadow-sm');
+        btnTable.classList.remove('text-slate-500');
+        btnGrid.classList.remove('bg-white', 'text-slate-800', 'shadow-sm');
+        btnGrid.classList.add('text-slate-500');
+      }
+      renderCards();
+    }
+
+    // Render Cards or Table
+    function renderCards() {
+      const container = document.getElementById('equipment-container');
+      const filtered = getFilteredItems();
+      document.getElementById('visible-count').textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white p-12 text-center rounded-2xl border border-slate-200 shadow-sm space-y-3">
+            <div class="w-12 h-12 mx-auto bg-slate-100 text-slate-400 rounded-full flex items-center justify-center">
+              <i data-lucide="filter-x" class="w-6 h-6"></i>
+            </div>
+            <h3 class="text-base font-bold text-slate-800">No se encontraron equipos</h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">No hay equipos que coincidan con los filtros seleccionados.</p>
+            <button onclick="resetFilters()" class="text-xs font-semibold text-milwaukee-red hover:underline">Restablecer todos los filtros</button>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      if (currentViewMode === 'table') {
+        renderTableView(container, filtered);
+      } else {
+        renderGridView(container, filtered);
+      }
+
+      lucide.createIcons();
+    }
+
+            function renderGridView(container, items) {
+      const operacionItems = items.filter(it => it.depto !== 'Relevo' && !it.tipo.includes('Relevo'));
+      const relevoItems = items.filter(it => it.depto === 'Relevo' || it.tipo.includes('Relevo'));
+
+      function generateCards(itemList, isRelevo = false) {
+        let cardsHtml = '<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">';
+        itemList.forEach(item => {
+          const v = validationState[item.id] || { status: null, notes: '', tags: [] };
+          const isApproved = v.status === 'approved';
+          const isRejected = v.status === 'rejected';
+          const asset = MODEL_ASSETS[item.modelo] || { image: 'logo-hangcha.png', pdf: null, seriesName: item.tipo, tagline: 'Equipo Hangcha' };
+
+          let cardBorder = isRelevo ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200';
+          let cardBg = isRelevo ? 'bg-amber-50/40' : 'bg-white';
+          let statusBadge = `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Pendiente</span>`;
+
+          if (isApproved) {
+            cardBorder = 'border-emerald-500 ring-2 ring-emerald-500/20';
+            statusBadge = `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Aprobado ✓</span>`;
+          } else if (isRejected) {
+            cardBorder = 'border-rose-500 ring-2 ring-rose-500/20';
+            statusBadge = `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Con Cambios ✕</span>`;
+          }
+
+          const availableTags = ['Capacidad Carga', 'Altura Mástil', 'Voltaje/Cargador', 'Modelo Incorrecto', 'Reubicar Planta', 'Tipo de Equipo'];
+
+          cardsHtml += `
+            <div class="${cardBg} rounded-2xl border ${cardBorder} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
+              
+              <div class="${isRelevo ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-900 text-white'} px-4 py-2.5 flex items-center justify-between border-b ${isRelevo ? 'border-amber-400' : 'border-slate-800'}">
+                <div class="flex items-center gap-2.5">
+                  <span class="font-display font-black text-sm ${isRelevo ? 'bg-slate-950 text-white' : 'bg-milwaukee-red text-white'} px-2.5 py-0.5 rounded shadow">
+                    #${String(item.id).padStart(2, '0')}
+                  </span>
+                  <span class="font-bold text-sm tracking-wide">
+                    MONTACARGAS ${item.modelo}
+                  </span>
+                  ${isRelevo ? '<span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded uppercase">Relevo</span>' : ''}
+                </div>
+                <div>${statusBadge}</div>
+              </div>
+
+              <div class="p-4 flex-1">
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                  <div class="sm:col-span-5 flex flex-col items-center justify-center ${isRelevo ? 'bg-amber-100/60 border border-amber-300/80' : 'bg-slate-50 border border-slate-200/80'} rounded-xl p-3">
+                    <div class="w-full h-36 flex items-center justify-center cursor-pointer" onclick="openDatasheetModal(${item.id})">
+                      <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain drop-shadow-sm hover:scale-105 transition-transform">
+                    </div>
+                    <div class="w-full grid grid-cols-2 gap-1.5 mt-2.5 pt-2 border-t ${isRelevo ? 'border-amber-200' : 'border-slate-200'}">
+                      ${asset.pdf ? `<a href="${asset.pdf}" target="_blank" class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold"><i data-lucide="file-text" class="w-3 h-3 text-milwaukee-red"></i> PDF</a>` : '<span class="text-[10px] text-slate-400 text-center py-1.5">Sin PDF</span>'}
+                      <button onclick="openDatasheetModal(${item.id})" class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white text-slate-800 border border-slate-300 text-[10px] font-bold">Ficha</button>
+                    </div>
+                  </div>
+
+                  <div class="sm:col-span-7 space-y-2 text-xs">
+                    <div class="font-bold text-slate-900 text-sm leading-tight">${item.tipo}</div>
+                    <div class="bg-slate-50 rounded-xl border border-slate-200/60 p-2.5 divide-y divide-slate-100">
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Cap. Carga:</span><strong>${item.capacidadCarga} Ton (${Math.round(parseFloat(item.capacidadCarga)*1000)} kg)</strong></div>
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Altura:</span><strong>${item.capacidadAltura === 'N/D' ? 'N/D' : item.capacidadAltura + ' m'}</strong></div>
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Poder:</span><strong>${item.combustible} • ${item.cargador}</strong></div>
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Depto:</span><strong>${item.depto}</strong></div>
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Planta:</span><strong class="bg-slate-200 px-1.5 rounded">${item.planta1}</strong></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-50 border-t ${isRelevo ? 'border-amber-200' : 'border-slate-200'}">
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="setItemStatus(${item.id}, 'approved')" class="py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 ${isApproved ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+                    <i data-lucide="check" class="w-4 h-4"></i> ${isApproved ? 'Validado ✓' : 'Aprobar'}
+                  </button>
+                  <button onclick="setItemStatus(${item.id}, 'rejected')" class="py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 ${isRejected ? 'bg-rose-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+                    <i data-lucide="x" class="w-4 h-4"></i> ${isRejected ? 'Con Cambio ✕' : 'Tacha'}
+                  </button>
+                </div>
+
+                ${isRejected ? `
+                  <div class="mt-2.5 p-2.5 bg-white rounded-xl border border-rose-200 space-y-2">
+                    <input type="text" value="${v.notes || ''}" oninput="updateItemNotes(${item.id}, this.value)" placeholder="Especifique el cambio..." class="w-full text-xs px-2 py-1 rounded border border-slate-200">
+                  </div>
+                ` : ''}
+              </div>
+
+            </div>
+          `;
+        });
+        cardsHtml += '</div>';
+        return cardsHtml;
+      }
+
+      let html = '<div class="space-y-8">';
+      if (operacionItems.length > 0) {
+        html += `
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider">Grupo 1: Equipos de Operación</h3>
+              <span class="bg-slate-900 text-white font-bold text-xs px-2 py-0.5 rounded-full">${operacionItems.length}</span>
+            </div>
+            ${generateCards(operacionItems, false)}
+          </div>
+        `;
+      }
+      if (relevoItems.length > 0) {
+        html += `
+          <div class="bg-amber-50/90 border-2 border-amber-400 rounded-3xl p-5 shadow-md">
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-base font-black text-amber-950 uppercase tracking-wider">Grupo 2: Equipos de Relevo (Contingencia)</h3>
+              <span class="bg-amber-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded-full">${relevoItems.length}</span>
+            </div>
+            ${generateCards(relevoItems, true)}
+          </div>
+        `;
+      }
+      html += '</div>';
+      container.innerHTML = html;
+    }
+    
+
+
+            function renderTableView(container, items) {
+      // Split into 2 groups: Operacion vs Relevo
+      const operacionItems = items.filter(it => it.depto !== 'Relevo' && !it.tipo.includes('Relevo'));
+      const relevoItems = items.filter(it => it.depto === 'Relevo' || it.tipo.includes('Relevo'));
+
+      function generateTableRows(itemList, isRelevo = false) {
+        let rowsHtml = '';
+        itemList.forEach(item => {
+          const v = validationState[item.id] || { status: null, notes: '', tags: [] };
+          const isApproved = v.status === 'approved';
+          const isRejected = v.status === 'rejected';
+          const asset = MODEL_ASSETS[item.modelo] || { image: 'logo-hangcha.png', pdf: null, seriesName: item.tipo };
+
+          let rowBg = isRelevo ? 'bg-amber-50/50 hover:bg-amber-100/60' : 'hover:bg-slate-50/90';
+          if (isApproved) rowBg = isRelevo ? 'bg-emerald-50/70 hover:bg-emerald-100/80 ring-1 ring-emerald-300' : 'bg-emerald-50/50 hover:bg-emerald-100/70';
+          if (isRejected) rowBg = isRelevo ? 'bg-rose-50/70 hover:bg-rose-100/80 ring-1 ring-rose-300' : 'bg-rose-50/50 hover:bg-rose-100/70';
+
+          const availableTags = ['Capacidad Carga', 'Altura Mástil', 'Voltaje/Cargador', 'Modelo Incorrecto', 'Reubicar Planta', 'Tipo de Equipo'];
+
+          rowsHtml += `
+            <tr class="${rowBg} transition-colors border-b ${isRelevo ? 'border-amber-200/80' : 'border-slate-100'}">
+              
+              <!-- # ID -->
+              <td class="p-3 text-center">
+                <span class="font-display font-black text-xs ${isRelevo ? 'bg-amber-500 text-slate-950' : 'bg-slate-900 text-white'} px-2 py-1 rounded-md shadow-xs">
+                  #${String(item.id).padStart(2, '0')}
+                </span>
+              </td>
+
+              <!-- FOTO THUMBNAIL -->
+              <td class="p-2 text-center">
+                <div class="w-14 h-11 mx-auto bg-white rounded-lg border ${isRelevo ? 'border-amber-300' : 'border-slate-200'} p-0.5 flex items-center justify-center cursor-pointer hover:shadow-md hover:scale-105 transition-all" onclick="openDatasheetModal(${item.id})">
+                  <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain">
+                </div>
+              </td>
+
+              <!-- MODELO -->
+              <td class="p-3 font-bold text-slate-900 cursor-pointer" onclick="openDatasheetModal(${item.id})">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xs font-black ${isRelevo ? 'bg-amber-200 text-amber-950 border border-amber-300' : 'bg-blue-50 text-hangcha-blue border border-blue-200'} px-2 py-0.5 rounded">
+                    ${item.modelo}
+                  </span>
+                </div>
+                <div class="text-[10px] text-slate-500 mt-0.5 font-normal truncate max-w-[130px]">${item.marca}</div>
+              </td>
+
+              <!-- FICHA PDF -->
+              <td class="p-3 text-center">
+                ${asset.pdf ? `
+                  <a href="${asset.pdf}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold text-white bg-slate-900 hover:bg-slate-800 px-2 py-1 rounded-lg shadow-xs transition-all" title="Abrir catálogo técnico PDF">
+                    <i data-lucide="file-text" class="w-3 h-3 text-milwaukee-red"></i>
+                    <span>PDF</span>
+                  </a>
+                ` : '<span class="text-slate-400 text-[10px]">N/D</span>'}
+              </td>
+
+              <!-- CONFIGURACION / TIPO -->
+              <td class="p-3 font-semibold text-slate-800 max-w-[200px]">
+                <div class="text-xs font-bold leading-tight">${item.tipo}</div>
+                <div class="text-[10px] text-slate-500 font-normal mt-0.5">${item.categoria}</div>
+              </td>
+
+              <!-- CAP. CARGA -->
+              <td class="p-3 whitespace-nowrap">
+                <div class="font-extrabold text-xs text-slate-900">${item.capacidadCarga} Ton</div>
+                <div class="text-[10px] text-slate-500 font-medium">${Math.round(parseFloat(item.capacidadCarga)*1000)} kg</div>
+              </td>
+
+              <!-- ALTURA MASTIL -->
+              <td class="p-3 font-bold text-slate-900 whitespace-nowrap">
+                ${item.capacidadAltura === 'N/D' ? '<span class="text-slate-400 font-normal">N/D</span>' : item.capacidadAltura + ' m'}
+              </td>
+
+              <!-- ENERGIA & CARGADOR -->
+              <td class="p-3 whitespace-nowrap">
+                <div class="text-xs font-bold ${item.combustible === 'Gas' ? 'text-orange-600' : 'text-emerald-700'} flex items-center gap-1">
+                  <i data-lucide="${item.combustible === 'Gas' ? 'flame' : 'zap'}" class="w-3 h-3"></i>
+                  ${item.combustible}
+                </div>
+                <div class="text-[10px] text-slate-600 font-semibold bg-white border border-slate-200 px-1 rounded inline-block mt-0.5">
+                  ${item.cargador}
+                </div>
+              </td>
+
+              <!-- DEPARTAMENTO -->
+              <td class="p-3 font-semibold text-slate-800">
+                <span class="inline-block px-2 py-0.5 rounded text-[11px] ${isRelevo ? 'bg-amber-200 text-amber-950 font-black' : 'bg-slate-100 text-slate-700 font-medium'}">
+                  ${item.depto}
+                </span>
+              </td>
+
+              <!-- PLANTA ASIGNADA -->
+              <td class="p-3">
+                <div class="text-xs font-bold text-slate-900">${item.planta1}</div>
+                ${item.planta2 && item.planta2 !== item.planta1 ? `
+                  <div class="text-[10px] text-slate-500">Aux: ${item.planta2}</div>
+                ` : ''}
+              </td>
+
+              <!-- PESTAÑITA VALIDACION (PALOMA / TACHA) -->
+              <td class="p-3 text-center whitespace-nowrap">
+                <div class="inline-flex items-center gap-1 bg-white p-1 rounded-xl border ${isRelevo ? 'border-amber-300' : 'border-slate-200'} shadow-xs">
+                  <!-- PALOMA -->
+                  <button onclick="setItemStatus(${item.id}, 'approved')" 
+                    class="py-1 px-2.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1
+                    ${isApproved ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-700 hover:bg-emerald-50'}" 
+                    title="Aprobar (Paloma)">
+                    <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                    <span>${isApproved ? 'Validado ✓' : 'Paloma'}</span>
+                  </button>
+
+                  <!-- TACHA -->
+                  <button onclick="setItemStatus(${item.id}, 'rejected')" 
+                    class="py-1 px-2.5 rounded-lg font-bold text-xs transition-all flex items-center gap-1
+                    ${isRejected ? 'bg-rose-600 text-white shadow-xs' : 'text-rose-700 hover:bg-rose-50'}" 
+                    title="Requerir Cambio (Tacha)">
+                    <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    <span>${isRejected ? 'Cambio ✕' : 'Tacha'}</span>
+                  </button>
+
+                  ${v.status ? `
+                    <button onclick="resetItemStatus(${item.id})" class="p-1 text-slate-400 hover:text-slate-600 rounded" title="Deshacer y volver a pendiente">
+                      <i data-lucide="rotate-ccw" class="w-3 h-3"></i>
+                    </button>
+                  ` : ''}
+                </div>
+              </td>
+
+              <!-- OBSERVACIONES / ESTADO -->
+              <td class="p-3 min-w-[220px]">
+                ${isRejected ? `
+                  <div class="space-y-1">
+                    <input type="text" 
+                      value="${v.notes || ''}" 
+                      oninput="updateItemNotes(${item.id}, this.value)"
+                      placeholder="Especifique el cambio requerido..." 
+                      class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-rose-300 focus:outline-none focus:ring-1 focus:ring-rose-500 bg-white font-medium">
+                    <div class="flex flex-wrap gap-1">
+                      ${availableTags.slice(0, 3).map(tag => {
+                        const hasTag = v.tags && v.tags.includes(tag);
+                        return `
+                          <button onclick="toggleItemTag(${item.id}, '${tag}')" class="text-[9px] px-1.5 py-0.5 rounded ${hasTag ? 'bg-rose-600 text-white' : 'bg-slate-100 text-slate-600'}">
+                            ${hasTag ? '✓ ' : '+ '}${tag}
+                          </button>
+                        `;
+                      }).join('')}
+                    </div>
+                  </div>
+                ` : (v.notes ? `
+                  <div class="text-[11px] text-slate-700 bg-white p-1.5 rounded border border-slate-200">
+                    <strong>Nota:</strong> ${v.notes}
+                  </div>
+                ` : `
+                  <span class="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                    ${isApproved ? '<span class="text-emerald-600 font-bold">✓ Conforme</span>' : '<span class="text-slate-400">⏳ Sin observaciones</span>'}
+                  </span>
+                `)}
+              </td>
+
+            </tr>
+          `;
+        });
+        return rowsHtml;
+      }
+
+      let html = '<div class="space-y-8">';
+
+      // ===============================================
+      // 1. GRUPO: EQUIPOS DE OPERACION
+      // ===============================================
+      if (operacionItems.length > 0) {
+        html += `
+          <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+            <!-- Header Grupo 1 -->
+            <div class="bg-slate-900 text-white p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-800">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-milwaukee-red text-white flex items-center justify-center font-black shadow-sm">
+                  <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-base font-extrabold text-white tracking-tight">GRUPO 1: EQUIPOS DE OPERACIÓN</h3>
+                    <span class="bg-milwaukee-red text-white font-extrabold text-xs px-2.5 py-0.5 rounded-full shadow-xs">
+                      ${operacionItems.length} Equipos
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-0.5">
+                    Flota regular asignada a Warehouse, CI, Shipping, Test Lab y EHS
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <button onclick="bulkApproveOperacion()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all">
+                  <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
+                  Aprobar todos los de Operación
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de Datos Grupo 1 -->
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 uppercase text-[10px] tracking-wider font-extrabold border-b border-slate-200">
+                    <th class="p-3 text-center">#</th>
+                    <th class="p-3 text-center">Foto</th>
+                    <th class="p-3">Modelo</th>
+                    <th class="p-3 text-center">Ficha</th>
+                    <th class="p-3">Tipo / Configuración</th>
+                    <th class="p-3">Cap. Carga</th>
+                    <th class="p-3">Mástil</th>
+                    <th class="p-3">Energía / Cargador</th>
+                    <th class="p-3">Depto</th>
+                    <th class="p-3">Planta</th>
+                    <th class="p-3 text-center">Validación</th>
+                    <th class="p-3">Observaciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                  ${generateTableRows(operacionItems, false)}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      // ===============================================
+      // 2. GRUPO: EQUIPOS DE RELEVO (RECUADRO AMARILLO)
+      // ===============================================
+      if (relevoItems.length > 0) {
+        html += `
+          <div class="bg-amber-50/90 border-2 border-amber-400 rounded-3xl p-5 sm:p-6 shadow-md ring-2 ring-amber-300/50">
+            
+            <!-- Header Grupo 2: Recuadro Amarillo -->
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-4 border-b border-amber-200">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shadow-sm">
+                  <i data-lucide="refresh-cw" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-base sm:text-lg font-black text-amber-950 tracking-tight">GRUPO 2: EQUIPOS DE RELEVO</h3>
+                    <span class="bg-amber-400 text-slate-950 font-black text-xs px-2.5 py-0.5 rounded-full border border-amber-500 shadow-xs uppercase">
+                      ${relevoItems.length} Equipos de Contingencia
+                    </span>
+                  </div>
+                  <p class="text-xs text-amber-800 mt-0.5 font-medium">
+                    Unidades de soporte operativo para sustitución continua, cobertura de turnos y mantenimiento (Planta 2 • All Plant)
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <button onclick="bulkApproveRelevo()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all">
+                  <i data-lucide="check-check" class="w-4 h-4"></i>
+                  Aprobar Equipos de Relevo (Paloma)
+                </button>
+              </div>
+            </div>
+
+            <!-- Tabla de Datos Grupo 2: Estilo Relevo Amarillo -->
+            <div class="bg-white rounded-2xl border border-amber-300 shadow-sm overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-amber-400 text-slate-950 uppercase text-[10px] tracking-wider font-black border-b border-amber-400">
+                    <th class="p-3 text-center">#</th>
+                    <th class="p-3 text-center">Foto</th>
+                    <th class="p-3">Modelo</th>
+                    <th class="p-3 text-center">Ficha</th>
+                    <th class="p-3">Tipo / Configuración</th>
+                    <th class="p-3">Cap. Carga</th>
+                    <th class="p-3">Mástil</th>
+                    <th class="p-3">Energía / Cargador</th>
+                    <th class="p-3">Depto</th>
+                    <th class="p-3">Planta</th>
+                    <th class="p-3 text-center">Validación</th>
+                    <th class="p-3">Observaciones</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-amber-100 font-medium">
+                  ${generateTableRows(relevoItems, true)}
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        `;
+      }
+
+      html += '</div>';
+      container.innerHTML = html;
+    }
+
+
+
+    // --- 7. PROGRESS CALCULATION ---
+    function updateProgress() {
+      let approved = 0;
+      let rejected = 0;
+      let reviewed = 0;
+      const total = rawEquipment.length; // 85
+
+      rawEquipment.forEach(item => {
+        const st = validationState[item.id]?.status;
+        if (st === 'approved') {
+          approved++;
+          reviewed++;
+        } else if (st === 'rejected') {
+          rejected++;
+          reviewed++;
+        }
+      });
+
+      const pending = total - reviewed;
+      const pct = Math.round((reviewed / total) * 100);
+
+      // DOM update
+      document.getElementById('reviewed-count').textContent = reviewed;
+      document.getElementById('progress-percent').textContent = pct + '%';
+      document.getElementById('stat-approved').textContent = approved;
+      document.getElementById('stat-rejected').textContent = rejected;
+      document.getElementById('stat-pending').textContent = pending;
+
+      // Mobile count
+      const mob = document.getElementById('mobile-reviewed-count');
+      if (mob) mob.textContent = reviewed;
+
+      // Progress bars
+      const pctApp = ((approved / total) * 100).toFixed(1);
+      const pctRej = ((rejected / total) * 100).toFixed(1);
+      const pctPen = ((pending / total) * 100).toFixed(1);
+
+      document.getElementById('bar-approved').style.width = pctApp + '%';
+      document.getElementById('bar-rejected').style.width = pctRej + '%';
+      document.getElementById('bar-pending').style.width = pctPen + '%';
+
+      // Badge in Export Tab
+      const tabBadge = document.getElementById('badge-tab-rejected');
+      if (tabBadge) {
+        if (rejected > 0) {
+          tabBadge.textContent = rejected;
+          tabBadge.classList.remove('hidden');
+        } else {
+          tabBadge.classList.add('hidden');
+        }
+      }
+    }
+
+    // --- 8. TAB 2: MODELS SUMMARY ---
+            function renderModelsSummary() {
+      const container = document.getElementById('models-summary-grid');
+      
+      const groups = {};
+      rawEquipment.forEach(item => {
+        const m = item.modelo;
+        if (!groups[m]) {
+          groups[m] = {
+            modelo: m,
+            items: [],
+            categoria: item.categoria,
+            tipo: item.tipo,
+            capacidadCarga: item.capacidadCarga,
+            capacidadAltura: item.capacidadAltura,
+            combustible: item.combustible,
+            cargador: item.cargador
+          };
+        }
+        groups[m].items.push(item);
+      });
+
+      let html = '';
+      Object.values(groups).forEach(g => {
+        let gApproved = 0;
+        let gRejected = 0;
+        let gPending = 0;
+        g.items.forEach(it => {
+          const st = validationState[it.id]?.status;
+          if (st === 'approved') gApproved++;
+          else if (st === 'rejected') gRejected++;
+          else gPending++;
+        });
+
+        const asset = MODEL_ASSETS[g.modelo] || {
+          image: 'logo-hangcha.png',
+          pdf: null,
+          seriesName: g.tipo,
+          tagline: 'Línea de equipo industrial'
+        };
+
+        const firstItem = g.items[0];
+
+        html += `
+          <!-- SHOWROOM CARD POR MODELO -->
+          <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+            
+            <div>
+              <!-- 1. ESCAPARATE DE FOTOGRAFÍA ESTUDIO INDUSTRIAL -->
+              <div class="relative w-full h-56 sm:h-64 bg-gradient-to-b from-slate-100 via-slate-50/60 to-white p-6 flex items-center justify-center border-b border-slate-100 overflow-hidden">
+                
+                <!-- Floating Badges -->
+                <div class="absolute top-3.5 left-3.5 z-10 flex items-center gap-2">
+                  <span class="bg-slate-900 text-white font-display font-black text-xs px-3 py-1 rounded-xl shadow-md border border-slate-700 tracking-wider">
+                    ${g.modelo}
+                  </span>
+                  <span class="bg-white/90 backdrop-blur text-slate-700 font-bold text-[11px] px-2.5 py-1 rounded-xl border border-slate-200 shadow-sm">
+                    ${g.categoria}
+                  </span>
+                </div>
+
+                <div class="absolute top-3.5 right-3.5 z-10">
+                  <span class="bg-milwaukee-red text-white font-extrabold text-xs px-3 py-1 rounded-xl shadow-md tracking-wide">
+                    ${g.items.length} Unidades
+                  </span>
+                </div>
+
+                <!-- Product Image with balanced studio ratio and shadow -->
+                <div class="w-full h-full flex items-center justify-center cursor-pointer" onclick="openDatasheetModal(${firstItem.id})">
+                  <img src="${asset.image}" alt="${g.modelo}" 
+                    class="max-h-44 sm:max-h-48 max-w-[85%] w-auto h-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                </div>
+
+                <!-- Subtle bottom brand watermark -->
+                <div class="absolute bottom-2 right-4 text-[10px] uppercase font-black text-slate-300 tracking-widest pointer-events-none select-none">
+                  HANGCHA FORKLIFT
+                </div>
+              </div>
+
+              <!-- 2. INFORMACIÓN Y HOJA DE DATOS TÉCNICOS -->
+              <div class="p-5 space-y-4">
+                
+                <div>
+                  <h3 class="text-base font-bold text-slate-900 group-hover:text-hangcha-blue transition-colors leading-snug">
+                    ${g.tipo}
+                  </h3>
+                  <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                    ${asset.tagline}
+                  </p>
+                </div>
+
+                <!-- Technical Specification Metrics (Grid 4) -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                  
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider leading-none">Cap. Carga</span>
+                    <strong class="text-xs font-black text-slate-900 mt-1 block">${g.capacidadCarga} Ton</strong>
+                    <span class="text-[10px] text-slate-400 font-medium">${Math.round(parseFloat(g.capacidadCarga)*1000)} kg</span>
+                  </div>
+
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider leading-none">Mástil Altura</span>
+                    <strong class="text-xs font-black text-slate-900 mt-1 block">${g.capacidadAltura === 'N/D' ? 'N/D' : g.capacidadAltura + ' m'}</strong>
+                    <span class="text-[10px] text-slate-400 font-medium">Elevación</span>
+                  </div>
+
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider leading-none">Propulsión</span>
+                    <strong class="text-xs font-bold text-slate-800 mt-1 block truncate">${g.combustible}</strong>
+                    <span class="text-[10px] text-slate-400 font-medium">${g.combustible === 'Gas' ? 'Combustión' : 'Li-Ion'}</span>
+                  </div>
+
+                  <div class="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
+                    <span class="text-slate-400 block text-[10px] uppercase font-bold tracking-wider leading-none">Cargador</span>
+                    <strong class="text-xs font-bold text-slate-800 mt-1 block truncate">${g.cargador}</strong>
+                    <span class="text-[10px] text-slate-400 font-medium">Alimentación</span>
+                  </div>
+
+                </div>
+
+                <!-- 3. BARRA DE ESTADO DE VALIDACIÓN DEL GRUPO -->
+                <div class="space-y-1.5 pt-1">
+                  <div class="flex items-center justify-between text-xs font-semibold">
+                    <span class="text-slate-600 flex items-center gap-1">
+                      <i data-lucide="check-circle" class="w-3.5 h-3.5 text-slate-400"></i>
+                      Estado de validación:
+                    </span>
+                    <span class="text-slate-900 font-bold">${gApproved + gRejected} de ${g.items.length} evaluados</span>
+                  </div>
+
+                  <div class="w-full bg-slate-100 rounded-full h-2.5 flex overflow-hidden border border-slate-200">
+                    <div class="bg-emerald-500 h-full transition-all duration-300" style="width: ${((gApproved/g.items.length)*100)}%" title="Aprobados"></div>
+                    <div class="bg-rose-500 h-full transition-all duration-300" style="width: ${((gRejected/g.items.length)*100)}%" title="Con Cambio"></div>
+                  </div>
+
+                  <div class="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                    <span class="text-emerald-700 font-bold">✓ ${gApproved} Aprobados</span>
+                    <span class="text-rose-700 font-bold">✕ ${gRejected} Con Cambio</span>
+                    <span class="text-slate-500 font-medium">⏳ ${gPending} Pendientes</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 4. BOTONERA DE ACCIÓN CORPORATIVA -->
+            <div class="p-4 bg-slate-50/80 border-t border-slate-100 flex flex-wrap items-center gap-2">
+              
+              ${asset.pdf ? `
+                <a href="${asset.pdf}" target="_blank" class="py-2.5 px-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+                  <i data-lucide="file-text" class="w-4 h-4 text-milwaukee-red"></i>
+                  <span>Ficha PDF</span>
+                </a>
+              ` : ''}
+
+              <button onclick="bulkApproveModel('${g.modelo}')" class="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all">
+                <i data-lucide="check-check" class="w-4 h-4"></i>
+                <span>Aprobar las ${g.items.length} unidades</span>
+              </button>
+
+              <button onclick="filterBySpecificModel('${g.modelo}')" class="py-2.5 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-all" title="Ver lista filtrada en Hoja de Datos">
+                <i data-lucide="eye" class="w-3.5 h-3.5"></i>
+                <span>Ver lista</span>
+              </button>
+
+            </div>
+
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+      lucide.createIcons();
+    }
+
+
+
+    function bulkApproveModel(modelo) {
+      const items = rawEquipment.filter(it => it.modelo === modelo);
+      const confirmAction = confirm(`¿Deseas marcar con Paloma (Aprobar) los ${items.length} equipos del modelo ${modelo}?`);
+      if (!confirmAction) return;
+
+      const now = new Date().toISOString();
+      items.forEach(it => {
+        if (!validationState[it.id]) {
+          validationState[it.id] = { status: 'approved', notes: '', tags: [], timestamp: now };
+        } else {
+          validationState[it.id].status = 'approved';
+          validationState[it.id].timestamp = now;
+        }
+      });
+
+      saveValidationState();
+      renderModelsSummary();
+      showToast(`${items.length} equipos modelo ${modelo} aprobados`);
+      checkCompletionCelebration();
+    }
+
+    function filterBySpecificModel(modelo) {
+      document.getElementById('filter-modelo').value = modelo;
+      goToTab('tab-catalog');
+      renderCards();
+    }
+
+    // --- 9. TAB 3: EXPORT AND SUMMARY ---
+    function renderExportSummary() {
+      let approved = 0;
+      let rejected = 0;
+      let reviewed = 0;
+
+      const rejectedItems = [];
+
+      rawEquipment.forEach(item => {
+        const v = validationState[item.id];
+        if (v?.status === 'approved') {
+          approved++;
+          reviewed++;
+        } else if (v?.status === 'rejected') {
+          rejected++;
+          reviewed++;
+          rejectedItems.push({ item, v });
+        }
+      });
+
+      const pending = rawEquipment.length - reviewed;
+
+      document.getElementById('final-approved-stat').textContent = approved;
+      document.getElementById('final-rejected-stat').textContent = rejected;
+      document.getElementById('final-pending-stat').textContent = pending;
+      document.getElementById('rejected-count-badge').textContent = rejected;
+
+      // Render rejected list
+      const container = document.getElementById('rejected-list-container');
+      if (rejectedItems.length === 0) {
+        container.innerHTML = `
+          <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 text-center text-slate-500 text-xs">
+            <i data-lucide="check-circle" class="w-8 h-8 text-emerald-500 mx-auto mb-2"></i>
+            <p class="font-bold text-slate-700">No hay equipos marcados con tacha o cambio solicitado.</p>
+            <p class="mt-0.5">Todos los equipos evaluados hasta el momento están conformes o pendientes de revisión.</p>
+          </div>
+        `;
+      } else {
+        let html = '';
+        rejectedItems.forEach(({ item, v }) => {
+          html += `
+            <div class="p-3.5 rounded-xl border border-rose-200 bg-rose-50/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-slate-900 bg-white border border-rose-200 px-2 py-0.5 rounded">
+                    #${String(item.id).padStart(2, '0')}
+                  </span>
+                  <span class="font-extrabold text-hangcha-blue">${item.modelo}</span>
+                  <span class="text-slate-500">• ${item.tipo}</span>
+                  <span class="text-slate-500">(${item.planta1})</span>
+                </div>
+                <div class="font-medium text-rose-900 flex items-start gap-1.5 pt-1">
+                  <i data-lucide="message-square" class="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5"></i>
+                  <span><strong>Observación:</strong> ${v.notes || '(Sin detalle de texto)'}</span>
+                </div>
+                ${v.tags && v.tags.length ? `
+                  <div class="flex flex-wrap gap-1 pt-1">
+                    ${v.tags.map(t => `<span class="bg-rose-200 text-rose-900 text-[10px] px-2 py-0.5 rounded font-bold">${t}</span>`).join('')}
+                  </div>
+                ` : ''}
+              </div>
+              <div class="shrink-0">
+                <button onclick="goToTab('tab-catalog'); setViewMode('grid'); document.getElementById('filter-search').value = '#${item.id}'; renderCards();" class="text-xs text-milwaukee-red hover:underline font-bold flex items-center gap-1">
+                  <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Editar
+                </button>
+              </div>
+            </div>
+          `;
+        });
+        container.innerHTML = html;
+      }
+
+      lucide.createIcons();
+    }
+
+    // --- 10. EXPORT TO EXCEL (.XLSX) ---
+    function exportToExcel() {
+      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
+      const reviewerTitle = document.getElementById('reviewer-title').value || '';
+      const reviewerPhone = document.getElementById('reviewer-phone').value || '';
+      const generalNotes = document.getElementById('reviewer-general-notes').value || '';
+
+      const rows = [];
+
+      // Header row matching original format + validation columns
+      rows.push([
+        'Número de Montacargas',
+        'Marca Actual',
+        'Modelo HANGCHA',
+        'Categoría',
+        'Tipo',
+        'Capacidad de Carga',
+        'Capacidad de Altura',
+        'Eléctrico / Gas',
+        'Tipo de Cargador',
+        'Department Owner',
+        'Planta Milwaukee',
+        'Planta Milwaukee2',
+        // Validation columns
+        'ESTADO DE VALIDACIÓN',
+        'OBSERVACIONES / CAMBIOS SOLICITADOS',
+        'MOTIVOS SELECCIONADOS',
+        'FECHA DE VALIDACIÓN',
+        'VALIDADO POR'
+      ]);
+
+      rawEquipment.forEach(item => {
+        const v = validationState[item.id] || { status: null, notes: '', tags: [], timestamp: '' };
+        let statusText = 'PENDIENTE';
+        if (v.status === 'approved') statusText = 'APROBADO (PALOMA) ✓';
+        if (v.status === 'rejected') statusText = 'REQUIERE CAMBIO (TACHA) ✕';
+
+        rows.push([
+          item.id,
+          item.marca,
+          item.modelo,
+          item.categoria,
+          item.tipo,
+          item.capacidadCarga,
+          item.capacidadAltura,
+          item.combustible,
+          item.cargador,
+          item.depto,
+          item.planta1,
+          item.planta2,
+          statusText,
+          v.notes || '',
+          (v.tags || []).join(', '),
+          v.timestamp ? new Date(v.timestamp).toLocaleString('es-MX') : '',
+          v.status ? reviewer : ''
+        ]);
+      });
+
+      // Metadata summary sheet
+      const summaryRows = [
+        ['REPORTE DE VALIDACIÓN DE LEVANTAMIENTO DE FLOTA'],
+        ['Proyecto:', 'Milwaukee Tool & Hangcha México'],
+        ['Fecha de Generación:', new Date().toLocaleString('es-MX')],
+        ['Validado Por:', reviewer + (reviewerTitle ? ' (' + reviewerTitle + ')' : '')],
+        ['Contacto del Revisor:', reviewerPhone],
+        ['Correo de Destino:', 'projectmilwhang@gmail.com'],
+        ['Comentarios Generales:', generalNotes],
+        [''],
+        ['RESUMEN DE EQUIPOS'],
+        ['Total Equipos Relevados:', rawEquipment.length],
+        ['Aprobados (Paloma):', document.getElementById('final-approved-stat').textContent],
+        ['Requieren Cambio (Tacha):', document.getElementById('final-rejected-stat').textContent],
+        ['Pendientes:', document.getElementById('final-pending-stat').textContent]
+      ];
+
+      const wb = XLSX.utils.book_new();
+
+      const wsEquipos = XLSX.utils.aoa_to_sheet(rows);
+      // Auto column widths
+      wsEquipos['!cols'] = [
+        { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 30 },
+        { wch: 18 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 },
+        { wch: 16 }, { wch: 16 }, { wch: 26 }, { wch: 35 }, { wch: 25 },
+        { wch: 22 }, { wch: 22 }
+      ];
+
+      const wsResumen = XLSX.utils.aoa_to_sheet(summaryRows);
+      wsResumen['!cols'] = [{ wch: 25 }, { wch: 45 }];
+
+      XLSX.utils.book_append_sheet(wb, wsEquipos, 'Validación Equipos');
+      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Ejecutivo');
+
+      const fileName = `Validacion_Hangcha_Milwaukee_${new Date().toISOString().slice(0,10)}.xlsx`;
+      XLSX.writeFile(wb, fileName);
+      showToast('Excel descargado con éxito: ' + fileName, 'success');
+    }
+
+    // --- 11. SEND VIA WHATSAPP ---
+    function sendViaWhatsApp() {
+      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
+      const approved = document.getElementById('final-approved-stat').textContent;
+      const rejected = document.getElementById('final-rejected-stat').textContent;
+      const pending = document.getElementById('final-pending-stat').textContent;
+
+      let msg = `*VALIDACIÓN DE EQUIPOS HANGCHA - MILWAUKEE*
+`;
+      msg += `👤 *Validado por:* ${reviewer}
+`;
+      msg += `📅 *Fecha:* ${new Date().toLocaleDateString('es-MX')}
+
+`;
+      msg += `*RESUMEN GLOBAL (85 Equipos):*
+`;
+      msg += `✅ Aprobados: ${approved}
+`;
+      msg += `❌ Con Cambios: ${rejected}
+`;
+      msg += `⏳ Pendientes: ${pending}
+
+`;
+
+      const rejectedItems = [];
+      rawEquipment.forEach(item => {
+        const v = validationState[item.id];
+        if (v?.status === 'rejected') {
+          rejectedItems.push({ item, v });
+        }
+      });
+
+      if (rejectedItems.length > 0) {
+        msg += `*DETALLE DE EQUIPOS CON CAMBIO / OBSERVACIÓN:*
+`;
+        rejectedItems.forEach(({ item, v }) => {
+          msg += `• *Equipo #${item.id}* (${item.modelo} - ${item.tipo}):
+`;
+          if (v.tags && v.tags.length) msg += `  [Tags: ${v.tags.join(', ')}]
+`;
+          msg += `  ${v.notes ? v.notes : 'Requiere revisión'}
+`;
+        });
+        msg += `
+`;
+      }
+
+      const genNotes = document.getElementById('reviewer-general-notes').value;
+      if (genNotes) {
+        msg += `*Notas Generales:* ${genNotes}
+`;
+      }
+
+      // Destination WhatsApp number from input or prompt
+      let contactPhone = document.getElementById('target-whatsapp-number')?.value?.trim();
+      if (!contactPhone) {
+        contactPhone = prompt('Ingresa el número de WhatsApp al que deseas enviar el reporte (o déjalo en blanco para abrir WhatsApp y elegir contacto):', '');
+      }
+
+      let waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
+      if (contactPhone && contactPhone.trim()) {
+        const cleanNumber = contactPhone.replace(/[^0-9]/g, '');
+        if (cleanNumber) {
+          waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=` + encodeURIComponent(msg);
+        }
+      }
+
+      window.open(waUrl, '_blank');
+    }
+
+    // --- 12. SEND VIA EMAIL ---
+    function sendViaEmail() {
+      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
+      const approved = document.getElementById('final-approved-stat').textContent;
+      const rejected = document.getElementById('final-rejected-stat').textContent;
+      const pending = document.getElementById('final-pending-stat').textContent;
+
+      const subject = `Validación Técnica Flota Hangcha-Milwaukee - ${reviewer}`;
+      
+      let body = `Estimado equipo de Hangcha,
+
+Te comparto el resultado de la validación del levantamiento de montacargas Hangcha para las plantas de Milwaukee Tool.
+
+`;
+      body += `RESUMEN DE EVALUACIÓN:
+`;
+      body += `- Total de Equipos: 85
+`;
+      body += `- Aprobados Conformes (Paloma): ${approved}
+`;
+      body += `- Con Cambios Solicitados (Tacha): ${rejected}
+`;
+      body += `- Pendientes: ${pending}
+
+`;
+
+      const rejectedItems = [];
+      rawEquipment.forEach(item => {
+        const v = validationState[item.id];
+        if (v?.status === 'rejected') {
+          rejectedItems.push({ item, v });
+        }
+      });
+
+      if (rejectedItems.length > 0) {
+        body += `EQUIPOS CON OBSERVACIONES O CAMBIOS:
+`;
+        rejectedItems.forEach(({ item, v }) => {
+          body += `• Equipo #${item.id} (${item.modelo} | ${item.planta1}):
+`;
+          body += `  Observación: ${v.notes || 'Revisar especificación'}
+`;
+          if (v.tags && v.tags.length) body += `  Aspectos: ${v.tags.join(', ')}
+`;
+        });
+        body += `
+`;
+      }
+
+      const genNotes = document.getElementById('reviewer-general-notes').value;
+      if (genNotes) body += `NOTAS GENERALES:
+${genNotes}
+
+`;
+
+      body += `Atentamente,
+${reviewer}
+`;
+
+      const targetEmail = 'projectmilwhang@gmail.com';
+      const mailtoUrl = `mailto:${targetEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      // Attempt standard mailto, and offer Gmail web fallback
+      try {
+        window.location.href = mailtoUrl;
+      } catch (e) {
+        console.error(e);
+      }
+      
+      showToast('Abriendo correo dirigido a ' + targetEmail, 'success');
+    }
+
+    // --- 13. COPY SUMMARY TEXT ---
+    function copySummaryText() {
+      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
+      const approved = document.getElementById('final-approved-stat').textContent;
+      const rejected = document.getElementById('final-rejected-stat').textContent;
+      const pending = document.getElementById('final-pending-stat').textContent;
+
+      let text = `VALIDACIÓN TÉCNICA - LEVANTAMIENTO HANGCHA / MILWAUKEE
+`;
+      text += `Revisor: ${reviewer}
+`;
+      text += `Fecha: ${new Date().toLocaleDateString('es-MX')}
+`;
+      text += `----------------------------------------
+`;
+      text += `Total Equipos: 85
+`;
+      text += `Aprobados: ${approved}
+`;
+      text += `Con Cambios Requeridos: ${rejected}
+`;
+      text += `Pendientes: ${pending}
+`;
+      text += `----------------------------------------
+`;
+
+      const rejectedItems = [];
+      rawEquipment.forEach(item => {
+        const v = validationState[item.id];
+        if (v?.status === 'rejected') rejectedItems.push({ item, v });
+      });
+
+      if (rejectedItems.length > 0) {
+        text += `
+DETALLE DE CAMBIOS SOLICITADOS:
+`;
+        rejectedItems.forEach(({ item, v }) => {
+          text += `- Equipo #${item.id} [${item.modelo} - ${item.tipo}] (${item.planta1}):
+`;
+          text += `  "${v.notes || 'Observación registrada'}"
+`;
+        });
+      }
+
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Resumen copiado al portapapeles con éxito', 'success');
+      }).catch(err => {
+        alert('Error al copiar: ' + err);
+      });
+    }
+
+    // --- 14. JSON BACKUP UTILITIES ---
+    function exportJSONBackup() {
+      const exportData = {
+        validationState,
+        reviewerInfo,
+        exportedAt: new Date().toISOString(),
+        totalEquipment: rawEquipment.length
+      };
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `respaldo_validacion_hangcha_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast('Respaldo JSON descargado');
+    }
+
+    function importJSONBackup(evt) {
+      const file = evt.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported.validationState) {
+            validationState = imported.validationState;
+            saveValidationState();
+          }
+          if (imported.reviewerInfo) {
+            reviewerInfo = imported.reviewerInfo;
+            localStorage.setItem(REVIEWER_KEY, JSON.stringify(reviewerInfo));
+          }
+          loadPersistedData();
+          renderCards();
+          showToast('Respaldo cargado correctamente', 'success');
+        } catch (err) {
+          alert('Archivo JSON no válido: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function resetAllValidation() {
+      const ok = confirm('¿Estás seguro de que deseas borrar TODAS las respuestas y reiniciar la evaluación desde cero?');
+      if (!ok) return;
+      validationState = {};
+      localStorage.removeItem(STORAGE_KEY);
+      updateProgress();
+      renderCards();
+      renderExportSummary();
+      showToast('Evaluación reiniciada a cero');
+    }
+
+    // --- 15. INITIALIZATION ---
+    
+    // --- AUTHENTICATION & LOGIN ---
+    const VALID_USERS = {
+      'milwaukee': 'hangcha',
+      'hangcha': 'milwaukee',
+      'admin': 'hangcha'
+    };
+
+    function checkAuth() {
+      const isAuth = sessionStorage.getItem('mwhc_auth') === 'true';
+      const screen = document.getElementById('login-screen');
+      if (screen) {
+        if (isAuth) {
+          screen.classList.add('hidden');
+        } else {
+          screen.classList.remove('hidden');
+        }
+      }
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const u = (document.getElementById('login-username').value || '').trim().toLowerCase();
+      const p = (document.getElementById('login-password').value || '').trim().toLowerCase();
+      const err = document.getElementById('login-error');
+
+      if (VALID_USERS[u] === p || (u === 'milwaukee' && p === 'hangcha') || (u === 'admin' && p === 'hangcha')) {
+        sessionStorage.setItem('mwhc_auth', 'true');
+        err.classList.add('hidden');
+        document.getElementById('login-screen').classList.add('hidden');
+        showToast('Bienvenido al Portal de Validación', 'success');
+      } else {
+        err.classList.remove('hidden');
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('mwhc_auth');
+      const screen = document.getElementById('login-screen');
+      if (screen) screen.classList.remove('hidden');
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+      showToast('Sesión cerrada');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
+      loadPersistedData();
+      updateProgress();
+      renderCards();
+      lucide.createIcons();
+    });
+  </script>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE FICHA TÉCNICA OFICIAL (DATASHEET) -->
+  <!-- ========================================== -->
+  <div id="datasheet-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-3">
+          <span id="modal-eq-badge" class="font-display font-black text-sm bg-milwaukee-red text-white px-2.5 py-0.5 rounded shadow">
+            #01
+          </span>
+          <div>
+            <h3 id="modal-title" class="text-base font-bold text-white leading-tight">
+              Ficha Técnica Oficial
+            </h3>
+            <p id="modal-subtitle" class="text-xs text-slate-400">
+              Hangcha Forklifts
+            </p>
+          </div>
+        </div>
+        <button onclick="closeDatasheetModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        
+        <!-- Large Photo & PDF download bar -->
+        <div class="bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center relative">
+          <img id="modal-img" src="logo-hangcha.png" alt="Equipo" class="max-h-56 max-w-full object-contain drop-shadow-md">
+          
+          <div class="mt-4 flex flex-wrap items-center justify-center gap-3 w-full">
+            <a id="modal-pdf-link" href="#" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition-all">
+              <i data-lucide="file-text" class="w-4 h-4 text-milwaukee-red"></i>
+              Abrir Folleto Oficial PDF
+            </a>
+            <span id="modal-status-badge"></span>
+          </div>
+        </div>
+
+        <!-- Specifications Table -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-extrabold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="clipboard-list" class="w-4 h-4 text-hangcha-blue"></i>
+            Hoja de Datos Técnicos del Levantamiento
+          </h4>
+          <div id="modal-specs-container" class="bg-slate-50 rounded-2xl border border-slate-200/80 p-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <!-- Injected via JS -->
+          </div>
+        </div>
+
+        <!-- Validation Control inside Modal -->
+        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+          <div class="text-xs font-bold text-slate-700 flex items-center justify-between">
+            <span>Validación para este equipo:</span>
+            <span class="text-slate-500 text-[11px]">Decisión del Revisor</span>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button id="modal-btn-approve" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 shadow transition-all">
+              <i data-lucide="check" class="w-4 h-4"></i> Aprobar Especificación
+            </button>
+            <button id="modal-btn-reject" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-2 shadow transition-all">
+              <i data-lucide="x" class="w-4 h-4"></i> Requiere Cambio
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Modal Helpers
+    let currentModalItemId = null;
+
+    function openDatasheetModal(id) {
+      const item = rawEquipment.find(it => it.id === id);
+      if (!item) return;
+      currentModalItemId = id;
+
+      const asset = MODEL_ASSETS[item.modelo] || {
+        image: 'logo-hangcha.png',
+        pdf: null,
+        seriesName: item.tipo,
+        tagline: 'Levantamiento Hangcha'
+      };
+
+      document.getElementById('modal-eq-badge').textContent = '#' + String(item.id).padStart(2, '0');
+      document.getElementById('modal-title').textContent = 'Montacargas ' + item.modelo + ' • ' + item.tipo;
+      document.getElementById('modal-subtitle').textContent = asset.seriesName + ' — ' + item.depto + ' (' + item.planta1 + ')';
+      document.getElementById('modal-img').src = asset.image;
+
+      const pdfLink = document.getElementById('modal-pdf-link');
+      if (asset.pdf) {
+        pdfLink.href = asset.pdf;
+        pdfLink.classList.remove('hidden');
+        pdfLink.innerHTML = '<i data-lucide="file-text" class="w-4 h-4 text-milwaukee-red"></i> Abrir Catálogo Técnico (' + asset.pdf + ')';
+      } else {
+        pdfLink.classList.add('hidden');
+      }
+
+      // Specs
+      const specsHtml = `
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Capacidad de Carga</span>
+          <strong class="text-sm font-black text-slate-900">${item.capacidadCarga} Ton (${Math.round(parseFloat(item.capacidadCarga)*1000)} kg)</strong>
+        </div>
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Altura de Mástil</span>
+          <strong class="text-sm font-black text-slate-900">${item.capacidadAltura === 'N/D' ? 'N/D' : item.capacidadAltura + ' m'}</strong>
+        </div>
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Propulsión / Combustible</span>
+          <strong class="text-sm font-bold text-slate-900">${item.combustible}</strong>
+        </div>
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Cargador / Voltaje</span>
+          <strong class="text-sm font-bold text-slate-900">${item.cargador}</strong>
+        </div>
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Departamento Asignado</span>
+          <strong class="text-sm font-bold text-slate-900">${item.depto}</strong>
+        </div>
+        <div class="p-2.5 bg-white rounded-xl border border-slate-100">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Planta Milwaukee</span>
+          <strong class="text-sm font-bold text-slate-900">${item.planta1} ${item.planta2 && item.planta2 !== item.planta1 ? ' / ' + item.planta2 : ''}</strong>
+        </div>
+      `;
+      document.getElementById('modal-specs-container').innerHTML = specsHtml;
+
+      // Bind modal buttons
+      document.getElementById('modal-btn-approve').onclick = function() {
+        setItemStatus(id, 'approved');
+        closeDatasheetModal();
+      };
+      document.getElementById('modal-btn-reject').onclick = function() {
+        setItemStatus(id, 'rejected');
+        closeDatasheetModal();
+      };
+
+      document.getElementById('datasheet-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeDatasheetModal() {
+      document.getElementById('datasheet-modal').classList.add('hidden');
+      currentModalItemId = null;
+    }
+
+    // Close on Escape
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeDatasheetModal();
+    });
+  </script>
+
+</body>
+</html>
