@@ -50,9 +50,6 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- SheetJS for Excel export -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  
   <!-- Canvas Confetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
   
@@ -180,10 +177,23 @@
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="hidden sm:inline font-medium">Autoguardado</span>
           </div>
-          
-          <button onclick="goToTab('tab-export')" class="inline-flex items-center gap-1.5 bg-milwaukee-red hover:bg-milwaukee-darkred text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg shadow-sm transition-all-200">
-            <i data-lucide="send" class="w-4 h-4"></i>
-            <span class="hidden sm:inline">Finalizar &</span> Enviar
+
+          <!-- Botón Guardar Cambios -->
+          <button onclick="manualSaveState()" class="inline-flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-3 sm:px-3.5 py-2 rounded-lg shadow-sm transition-all" title="Guardar cambios y selecciones en la aplicación">
+            <i data-lucide="save" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Guardar Cambios</span>
+            <span class="sm:hidden">Guardar</span>
+          </button>
+
+          <!-- Botón Resetear Todo (Requiere Contraseña de Admin) -->
+          <button onclick="openAdminResetModal()" class="inline-flex items-center gap-1.5 text-rose-300 hover:text-white hover:bg-rose-900/60 border border-rose-800/70 px-2.5 py-2 rounded-lg text-xs font-bold transition-all" title="Resetear evaluación (Requiere contraseña de administrador)">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-rose-400"></i>
+            <span class="hidden md:inline">Resetear</span>
+          </button>
+
+          <button onclick="goToTab('tab-export')" class="inline-flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg border border-slate-700 shadow-sm transition-all">
+            <i data-lucide="clipboard-check" class="w-4 h-4 text-milwaukee-red"></i>
+            <span class="hidden sm:inline">Resumen</span>
           </button>
 
           <button onclick="logout()" class="inline-flex items-center gap-1 text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors text-xs font-semibold" title="Cerrar sesión">
@@ -292,8 +302,8 @@
         </button>
 
         <button id="tab-btn-export" onclick="goToTab('tab-export')" class="tab-btn flex items-center gap-2 py-3 px-3 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 whitespace-nowrap">
-          <i data-lucide="check-square" class="w-4 h-4"></i>
-          3. Resumen & Envío a Hangcha
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          3. Resumen & Guardado de Evaluación
           <span id="badge-tab-rejected" class="hidden bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">0</span>
         </button>
 
@@ -400,6 +410,11 @@
             <button onclick="bulkApproveVisible()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold transition-all shadow-sm" title="Aprueba con Paloma todos los equipos que se muestran actualmente">
               <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
               Aprobar visibles con Paloma
+            </button>
+
+            <button onclick="manualSaveState()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold transition-all shadow-sm text-xs" title="Guardar cambios y selecciones">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i>
+              <span>Guardar</span>
             </button>
             
             <div class="h-4 w-px bg-slate-300"></div>
@@ -537,7 +552,7 @@
           Datos del Revisor de Planta (Cliente)
         </h3>
         <p class="text-xs text-slate-500">
-          Esta información se anexará al archivo Excel y al reporte oficial de validación.
+          Esta información se resguarda junto con las notas y decisiones directamente en la aplicación web.
         </p>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -552,7 +567,7 @@
               class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
           </div>
           <div>
-            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Teléfono / WhatsApp</label>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Teléfono de Contacto</label>
             <input type="text" id="reviewer-phone" oninput="saveReviewerInfo()" placeholder="Ej. +52 81 1234 5678" 
               class="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
           </div>
@@ -565,103 +580,82 @@
         </div>
       </div>
 
-      <!-- Action Buttons Grid (How Hangcha receives the info) -->
+      <!-- Action Buttons Grid: Guardado Local y Control de Evaluación -->
       <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
           <div>
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="share-2" class="w-5 h-5 text-hangcha-blue"></i>
-              Opciones para Enviar la Validación a Hangcha
+              <i data-lucide="shield-check" class="w-5 h-5 text-emerald-600"></i>
+              Control y Resguardo de la Evaluación
             </h3>
             <p class="text-xs text-slate-500 mt-0.5">
-              El reporte se enviará por correo a <strong>projectmilwhang@gmail.com</strong> y por WhatsApp al número seleccionado.
+              Todas las decisiones de validación y notas se resguardan de forma segura directamente en esta aplicación web.
             </p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-              <i data-lucide="mail" class="w-3.5 h-3.5 text-milwaukee-red"></i> projectmilwhang@gmail.com
+            <span class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-200">
+              <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-600"></i> Almacenamiento Seguro en Aplicación
             </span>
           </div>
         </div>
 
-        <!-- WhatsApp Destination Number Input -->
-        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div class="flex items-center gap-2 shrink-0">
-            <div class="w-8 h-8 rounded-lg bg-green-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-              <i data-lucide="message-circle" class="w-4 h-4"></i>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-slate-800">Número de WhatsApp de Envío</div>
-              <div class="text-[11px] text-slate-500">Ingresa el teléfono de destino o déjalo en blanco para elegirlo en WhatsApp</div>
-            </div>
+        <!-- Security policy banner -->
+        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-4 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-sm shrink-0 mt-0.5">
+            <i data-lucide="shield" class="w-4 h-4"></i>
           </div>
-          <div class="flex-1">
-            <input type="text" id="target-whatsapp-number" placeholder="Ej. +52 81 1234 5678 (con lada de país)" 
-              class="w-full text-xs sm:text-sm px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-green-500/30 focus:border-green-600 bg-white font-medium">
+          <div class="text-xs text-emerald-950 space-y-1">
+            <div class="font-extrabold text-emerald-900 text-sm">Resguardo Directo en la Aplicación</div>
+            <p class="text-slate-600 leading-relaxed">
+              Por políticas de seguridad, <strong>la descarga de archivos XLS y el envío por WhatsApp han sido desactivados</strong>. Todas tus selecciones de palomas, tachas, notas y observaciones permanecen guardadas en esta aplicación web para su consulta, edición y seguimiento permanente.
+            </p>
           </div>
         </div>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           
-          <!-- 1. Download Excel -->
-          <button onclick="exportToExcel()" class="flex flex-col items-start p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/60 hover:bg-emerald-100/80 transition-all text-left group shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-emerald-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
-              <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+          <!-- 1. Botón Principal: Guardar Cambios -->
+          <button onclick="manualSaveState()" class="flex flex-col items-start p-5 rounded-2xl border-2 border-emerald-500 bg-emerald-50/80 hover:bg-emerald-100/90 transition-all text-left group shadow-sm">
+            <div class="w-11 h-11 rounded-xl bg-emerald-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="save" class="w-6 h-6"></i>
             </div>
-            <span class="text-xs uppercase font-extrabold text-emerald-800 tracking-wider">Recomendado</span>
-            <span class="text-sm font-bold text-slate-900 mt-0.5">Descargar Excel Validado</span>
-            <span class="text-xs text-slate-600 mt-1">Genera archivo .XLSX con los 85 equipos y columna de decisión + comentarios.</span>
+            <span class="text-xs uppercase font-extrabold text-emerald-800 tracking-wider">Acción Principal</span>
+            <span class="text-base font-black text-slate-900 mt-0.5">Guardar Cambios</span>
+            <span class="text-xs text-slate-600 mt-1">Guarda y asegura todas las aprobaciones, cambios solicitados, notas y datos del revisor.</span>
+            <div class="mt-4 pt-2.5 border-t border-emerald-200/90 w-full flex items-center justify-between text-[11px] font-bold text-emerald-800">
+              <span id="manual-save-status-label">✓ Guardado en esta aplicación</span>
+              <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-600"></i>
+            </div>
           </button>
 
-          <!-- 2. Send via WhatsApp -->
-          <button onclick="sendViaWhatsApp()" class="flex flex-col items-start p-4 rounded-xl border-2 border-green-500 bg-green-50/60 hover:bg-green-100/80 transition-all text-left group shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
-              <i data-lucide="message-circle" class="w-5 h-5"></i>
+          <!-- 2. Botón: Resetear Todo con Contraseña de Admin -->
+          <button onclick="openAdminResetModal()" class="flex flex-col items-start p-5 rounded-2xl border-2 border-rose-300 bg-rose-50/50 hover:bg-rose-100/70 transition-all text-left group shadow-sm">
+            <div class="w-11 h-11 rounded-xl bg-rose-600 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
             </div>
-            <span class="text-xs uppercase font-extrabold text-green-800 tracking-wider">Inmediato</span>
-            <span class="text-sm font-bold text-slate-900 mt-0.5">Enviar por WhatsApp</span>
-            <span class="text-xs text-slate-600 mt-1">Envía mensaje preformateado a Hangcha con desglose de equipos con cambio.</span>
+            <span class="text-xs uppercase font-extrabold text-rose-800 tracking-wider">Protegido con Contraseña</span>
+            <span class="text-base font-black text-slate-900 mt-0.5">Resetear Todo (Admin)</span>
+            <span class="text-xs text-slate-600 mt-1">Borra todas las respuestas y reinicia la evaluación a cero. <strong>Requiere contraseña de administrador.</strong></span>
+            <div class="mt-4 pt-2.5 border-t border-rose-200/90 w-full flex items-center justify-between text-[11px] font-bold text-rose-800">
+              <span class="flex items-center gap-1"><i data-lucide="lock" class="w-3 h-3"></i> Requiere Password Admin</span>
+              <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+            </div>
           </button>
 
-          <!-- 3. Send via Email -->
-          <button onclick="sendViaEmail()" class="flex flex-col items-start p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-slate-800 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
-              <i data-lucide="mail" class="w-5 h-5"></i>
-            </div>
-            <span class="text-xs uppercase font-extrabold text-milwaukee-red tracking-wider">projectmilwhang@gmail.com</span>
-            <span class="text-sm font-bold text-slate-900 mt-0.5">Enviar por Correo</span>
-            <span class="text-xs text-slate-600 mt-1">Envía el reporte completo directamente a projectmilwhang@gmail.com.</span>
-          </button>
-
-          <!-- 4. Copy Summary -->
-          <button onclick="copySummaryText()" class="flex flex-col items-start p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group shadow-sm">
-            <div class="w-10 h-10 rounded-lg bg-slate-700 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
-              <i data-lucide="copy" class="w-5 h-5"></i>
+          <!-- 3. Copiar Resumen al Portapapeles -->
+          <button onclick="copySummaryText()" class="flex flex-col items-start p-5 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-all text-left group shadow-sm">
+            <div class="w-11 h-11 rounded-xl bg-slate-800 text-white flex items-center justify-center mb-3 shadow group-hover:scale-105 transition-transform">
+              <i data-lucide="copy" class="w-6 h-6"></i>
             </div>
             <span class="text-xs uppercase font-extrabold text-slate-600 tracking-wider">Portapapeles</span>
-            <span class="text-sm font-bold text-slate-900 mt-0.5">Copiar Resumen</span>
-            <span class="text-xs text-slate-600 mt-1">Copia el texto estructurado para pegar en Teams, Notion o chat.</span>
+            <span class="text-base font-black text-slate-900 mt-0.5">Copiar Resumen de Texto</span>
+            <span class="text-xs text-slate-600 mt-1">Copia el reporte en texto estructurado para compartir por Teams, notas internas o correo.</span>
+            <div class="mt-4 pt-2.5 border-t border-slate-200 w-full flex items-center justify-between text-[11px] font-bold text-slate-700">
+              <span>Copiar al portapapeles</span>
+              <i data-lucide="clipboard" class="w-3.5 h-3.5"></i>
+            </div>
           </button>
 
-        </div>
-
-        <!-- Secondary backup utilities -->
-        <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2">
-            <button onclick="exportJSONBackup()" class="text-slate-600 hover:text-slate-900 flex items-center gap-1 font-semibold">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Guardar respaldo JSON
-            </button>
-            <span class="text-slate-300">•</span>
-            <label class="text-slate-600 hover:text-slate-900 flex items-center gap-1 font-semibold cursor-pointer">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Cargar respaldo JSON
-              <input type="file" id="json-file-input" onchange="importJSONBackup(event)" accept=".json" class="hidden">
-            </label>
-          </div>
-          <div>
-            <button onclick="resetAllValidation()" class="text-rose-600 hover:text-rose-800 flex items-center gap-1 font-semibold">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reiniciar todas las respuestas
-            </button>
-          </div>
         </div>
 
       </div>
@@ -2159,188 +2153,47 @@
       lucide.createIcons();
     }
 
-    // --- 10. EXPORT TO EXCEL (.XLSX) ---
-    function exportToExcel() {
-      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
-      const reviewerTitle = document.getElementById('reviewer-title').value || '';
-      const reviewerPhone = document.getElementById('reviewer-phone').value || '';
-      const generalNotes = document.getElementById('reviewer-general-notes').value || '';
+    // --- 10. MANUAL SAVE STATE ---
+    function manualSaveState() {
+      saveValidationState();
+      saveReviewerInfo();
 
-      const rows = [];
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      // Header row matching original format + validation columns
-      rows.push([
-        'Número de Montacargas',
-        'Marca Actual',
-        'Modelo HANGCHA',
-        'Categoría',
-        'Tipo',
-        'Capacidad de Carga',
-        'Capacidad de Altura',
-        'Eléctrico / Gas',
-        'Tipo de Cargador',
-        'Department Owner',
-        'Planta Milwaukee',
-        'Planta Milwaukee2',
-        'DISPONIBILIDAD (STOCK)',
-        // Validation columns
-        'ESTADO DE VALIDACIÓN',
-        'OBSERVACIONES / CAMBIOS SOLICITADOS',
-        'MOTIVOS SELECCIONADOS',
-        'FECHA DE VALIDACIÓN',
-        'VALIDADO POR'
-      ]);
+      // Visual feedback on header badge
+      const badge = document.getElementById('autosave-badge');
+      if (badge) {
+        badge.innerHTML = `
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+          <span class="font-bold text-emerald-300">¡Guardado ${timeStr}!</span>
+        `;
+        setTimeout(() => {
+          badge.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="hidden sm:inline font-medium">Autoguardado</span>
+          `;
+        }, 3500);
+      }
 
-      rawEquipment.forEach(item => {
-        const v = validationState[item.id] || { status: null, notes: '', tags: [], timestamp: '' };
-        let statusText = 'PENDIENTE';
-        if (v.status === 'approved') statusText = 'APROBADO (PALOMA) ✓';
-        if (v.status === 'rejected') statusText = 'REQUIERE CAMBIO (TACHA) ✕';
+      // Update Tab 3 status label
+      const saveStatus = document.getElementById('manual-save-status-label');
+      if (saveStatus) {
+        saveStatus.textContent = `✓ Guardado: ${timeStr} en esta aplicación`;
+      }
 
-        const inStock = isImmediateStock(item);
-        const stockText = inStock ? '⚡ ENTREGA INMEDIATA (STOCK)' : 'SOBRE PEDIDO (ESTÁNDAR)';
-
-        rows.push([
-          item.id,
-          item.marca,
-          item.modelo,
-          item.categoria,
-          item.tipo,
-          item.capacidadCarga,
-          item.capacidadAltura,
-          item.combustible,
-          item.cargador,
-          item.depto,
-          item.planta1,
-          item.planta2,
-          stockText,
-          statusText,
-          v.notes || '',
-          (v.tags || []).join(', '),
-          v.timestamp ? new Date(v.timestamp).toLocaleString('es-MX') : '',
-          v.status ? reviewer : ''
-        ]);
-      });
-
-      // Metadata summary sheet
-      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
-      const standardTotal = rawEquipment.length - stockTotal;
-
-      const summaryRows = [
-        ['REPORTE DE VALIDACIÓN DE LEVANTAMIENTO DE FLOTA'],
-        ['Proyecto:', 'Milwaukee Tool & Hangcha México'],
-        ['Fecha de Generación:', new Date().toLocaleString('es-MX')],
-        ['Validado Por:', reviewer + (reviewerTitle ? ' (' + reviewerTitle + ')' : '')],
-        ['Contacto del Revisor:', reviewerPhone],
-        ['Correo de Destino:', 'projectmilwhang@gmail.com'],
-        ['Comentarios Generales:', generalNotes],
-        [''],
-        ['RESUMEN DE EQUIPOS'],
-        ['Total Equipos Relevados:', rawEquipment.length],
-        ['Equipos en Stock Inmediato (⚡):', `${stockTotal} de ${rawEquipment.length} (${Math.round(stockTotal/rawEquipment.length*100)}%)`],
-        ['Equipos Sobre Pedido (📦):', `${standardTotal} de ${rawEquipment.length} (${Math.round(standardTotal/rawEquipment.length*100)}%)`],
-        ['Aprobados (Paloma):', document.getElementById('final-approved-stat').textContent],
-        ['Requieren Cambio (Tacha):', document.getElementById('final-rejected-stat').textContent],
-        ['Pendientes:', document.getElementById('final-pending-stat').textContent]
-      ];
-
-      const wb = XLSX.utils.book_new();
-
-      const wsEquipos = XLSX.utils.aoa_to_sheet(rows);
-      // Auto column widths
-      wsEquipos['!cols'] = [
-        { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 30 },
-        { wch: 18 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 },
-        { wch: 16 }, { wch: 16 }, { wch: 30 }, { wch: 26 }, { wch: 35 }, { wch: 25 },
-        { wch: 22 }, { wch: 22 }
-      ];
-
-      const wsResumen = XLSX.utils.aoa_to_sheet(summaryRows);
-      wsResumen['!cols'] = [{ wch: 28 }, { wch: 45 }];
-
-      XLSX.utils.book_append_sheet(wb, wsEquipos, 'Validación Equipos');
-      XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Ejecutivo');
-
-      const fileName = `Validacion_Hangcha_Milwaukee_${new Date().toISOString().slice(0,10)}.xlsx`;
-      XLSX.writeFile(wb, fileName);
-      showToast('Excel descargado con éxito: ' + fileName, 'success');
+      showToast(`✓ Selecciones guardadas con éxito en la aplicación (${timeStr})`, 'success');
     }
 
-    // --- 11. SEND VIA WHATSAPP ---
+    // Security disabled stubs
+    function exportToExcel() {
+      alert('Por políticas de seguridad, la descarga de archivos Excel (XLS) está desactivada. Todas tus selecciones permanecen resguardadas directamente en esta aplicación web.');
+      showToast('Descarga XLS deshabilitada por seguridad', 'error');
+    }
+
     function sendViaWhatsApp() {
-      const reviewer = document.getElementById('reviewer-name').value || 'Revisor de Planta';
-      const approved = document.getElementById('final-approved-stat').textContent;
-      const rejected = document.getElementById('final-rejected-stat').textContent;
-      const pending = document.getElementById('final-pending-stat').textContent;
-      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
-      const standardTotal = rawEquipment.length - stockTotal;
-
-      let msg = `*VALIDACIÓN DE EQUIPOS HANGCHA - MILWAUKEE*
-`;
-      msg += `👤 *Validado por:* ${reviewer}
-`;
-      msg += `📅 *Fecha:* ${new Date().toLocaleDateString('es-MX')}
-
-`;
-      msg += `*RESUMEN GLOBAL (85 Equipos):*
-`;
-      msg += `⚡ En Stock Inmediato: ${stockTotal} equipos
-`;
-      msg += `📦 Sobre Pedido: ${standardTotal} equipos
-`;
-      msg += `✅ Aprobados: ${approved}
-`;
-      msg += `❌ Con Cambios: ${rejected}
-`;
-      msg += `⏳ Pendientes: ${pending}
-
-`;
-
-      const rejectedItems = [];
-      rawEquipment.forEach(item => {
-        const v = validationState[item.id];
-        if (v?.status === 'rejected') {
-          rejectedItems.push({ item, v });
-        }
-      });
-
-      if (rejectedItems.length > 0) {
-        msg += `*DETALLE DE EQUIPOS CON CAMBIO / OBSERVACIÓN:*
-`;
-        rejectedItems.forEach(({ item, v }) => {
-          const inStock = isImmediateStock(item);
-          msg += `• *Equipo #${item.id}* (${item.modelo} - ${item.tipo} | ${inStock ? '⚡ Stock Inmediato' : 'Sobre Pedido'}):
-`;
-          if (v.tags && v.tags.length) msg += `  [Tags: ${v.tags.join(', ')}]
-`;
-          msg += `  ${v.notes ? v.notes : 'Requiere revisión'}
-`;
-        });
-        msg += `
-`;
-      }
-
-      const genNotes = document.getElementById('reviewer-general-notes').value;
-      if (genNotes) {
-        msg += `*Notas Generales:* ${genNotes}
-`;
-      }
-
-      // Destination WhatsApp number from input or prompt
-      let contactPhone = document.getElementById('target-whatsapp-number')?.value?.trim();
-      if (!contactPhone) {
-        contactPhone = prompt('Ingresa el número de WhatsApp al que deseas enviar el reporte (o déjalo en blanco para abrir WhatsApp y elegir contacto):', '');
-      }
-
-      let waUrl = 'https://api.whatsapp.com/send?text=' + encodeURIComponent(msg);
-      if (contactPhone && contactPhone.trim()) {
-        const cleanNumber = contactPhone.replace(/[^0-9]/g, '');
-        if (cleanNumber) {
-          waUrl = `https://api.whatsapp.com/send?phone=${cleanNumber}&text=` + encodeURIComponent(msg);
-        }
-      }
-
-      window.open(waUrl, '_blank');
+      alert('El envío por WhatsApp ha sido deshabilitado de la aplicación.');
+      showToast('Envío por WhatsApp deshabilitado', 'error');
     }
 
     // --- 12. SEND VIA EMAIL ---
@@ -2482,20 +2335,8 @@ DETALLE DE CAMBIOS SOLICITADOS:
 
     // --- 14. JSON BACKUP UTILITIES ---
     function exportJSONBackup() {
-      const exportData = {
-        validationState,
-        reviewerInfo,
-        exportedAt: new Date().toISOString(),
-        totalEquipment: rawEquipment.length
-      };
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', dataStr);
-      downloadAnchor.setAttribute('download', `respaldo_validacion_hangcha_${new Date().toISOString().slice(0,10)}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showToast('Respaldo JSON descargado');
+      alert('La descarga de archivos ha sido deshabilitada por políticas de seguridad. Toda la información se mantiene guardada localmente en esta aplicación.');
+      showToast('Descarga deshabilitada por seguridad', 'error');
     }
 
     function importJSONBackup(evt) {
@@ -2523,15 +2364,82 @@ DETALLE DE CAMBIOS SOLICITADOS:
       reader.readAsText(file);
     }
 
-    function resetAllValidation() {
-      const ok = confirm('¿Estás seguro de que deseas borrar TODAS las respuestas y reiniciar la evaluación desde cero?');
+    // --- 14. ADMIN RESET UTILITIES ---
+    const ADMIN_PASSWORDS = ['hangcha', 'admin123', 'admin'];
+
+    function openAdminResetModal() {
+      const modal = document.getElementById('admin-reset-modal');
+      const passInput = document.getElementById('admin-reset-password-input');
+      const errorMsg = document.getElementById('admin-reset-error');
+      if (passInput) passInput.value = '';
+      if (errorMsg) {
+        errorMsg.textContent = '';
+        errorMsg.classList.add('hidden');
+      }
+      if (modal) {
+        modal.classList.remove('hidden');
+        setTimeout(() => passInput?.focus(), 100);
+      }
+      lucide.createIcons();
+    }
+
+    function closeAdminResetModal() {
+      const modal = document.getElementById('admin-reset-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function toggleAdminPasswordVisibility() {
+      const input = document.getElementById('admin-reset-password-input');
+      if (!input) return;
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function confirmAdminReset() {
+      const input = document.getElementById('admin-reset-password-input');
+      const errorMsg = document.getElementById('admin-reset-error');
+      const pass = (input?.value || '').trim();
+
+      if (!pass) {
+        if (errorMsg) {
+          errorMsg.textContent = 'Por favor ingresa la contraseña de administrador.';
+          errorMsg.classList.remove('hidden');
+        }
+        return;
+      }
+
+      if (!ADMIN_PASSWORDS.includes(pass.toLowerCase())) {
+        if (errorMsg) {
+          errorMsg.textContent = 'Contraseña incorrecta. Se requiere autorización de Administrador.';
+          errorMsg.classList.remove('hidden');
+        }
+        if (input) {
+          input.classList.add('border-rose-500', 'bg-rose-50');
+          setTimeout(() => input.classList.remove('border-rose-500', 'bg-rose-50'), 1500);
+        }
+        return;
+      }
+
+      // Password is correct, confirm reset
+      closeAdminResetModal();
+      
+      const ok = confirm('⚠️ ADVERTENCIA FINAL:\n\n¿Estás seguro de que deseas borrar TODAS las respuestas, aprobaciones, observaciones y notas guardadas?\n\nEsta acción reiniciará a cero la evaluación de los 85 equipos.');
       if (!ok) return;
+
       validationState = {};
       localStorage.removeItem(STORAGE_KEY);
       updateProgress();
       renderCards();
       renderExportSummary();
-      showToast('Evaluación reiniciada a cero');
+      showToast('✓ Evaluación reiniciada a cero por el Administrador', 'success');
+      
+      const saveStatus = document.getElementById('manual-save-status-label');
+      if (saveStatus) {
+        saveStatus.textContent = 'Evaluación reiniciada a cero';
+      }
+    }
+
+    function resetAllValidation() {
+      openAdminResetModal();
     }
 
     // --- 15. INITIALIZATION ---
@@ -2661,6 +2569,55 @@ DETALLE DE CAMBIOS SOLICITADOS:
 
       </div>
 
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL DE RESETEO CON CONTRASEÑA ADMIN -->
+  <!-- ========================================== -->
+  <div id="admin-reset-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="relative bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center font-bold">
+            <i data-lucide="shield-alert" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Autorización de Administrador</h3>
+            <p class="text-xs text-slate-500">Requerido para resetear la evaluación</p>
+          </div>
+        </div>
+        <button onclick="closeAdminResetModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600 leading-relaxed">
+        Esta acción <strong>borrará todas las aprobaciones, cambios solicitados, notas y selecciones guardadas</strong> de los 85 equipos.
+      </p>
+
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Contraseña de Administrador:</label>
+        <div class="relative">
+          <input type="password" id="admin-reset-password-input" placeholder="Ingresa contraseña de admin..." 
+            class="w-full pl-3 pr-10 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-600 font-mono transition-all"
+            onkeydown="if(event.key==='Enter') confirmAdminReset();">
+          <button type="button" onclick="toggleAdminPasswordVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5" title="Mostrar/Ocultar contraseña">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <p id="admin-reset-error" class="text-xs text-rose-600 font-bold hidden"></p>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeAdminResetModal()" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all">
+          Cancelar
+        </button>
+        <button onclick="confirmAdminReset()" class="py-2.5 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center gap-1.5 shadow transition-all">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          Confirmar Reset
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2798,7 +2755,10 @@ DETALLE DE CAMBIOS SOLICITADOS:
 
     // Close on Escape
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeDatasheetModal();
+      if (e.key === 'Escape') {
+        closeDatasheetModal();
+        closeAdminResetModal();
+      }
     });
   </script>
 
