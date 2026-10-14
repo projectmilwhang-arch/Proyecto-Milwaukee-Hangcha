@@ -221,7 +221,23 @@
         </div>
 
         <!-- Quick Stats Counters -->
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+          <!-- Stock Inmediato Counter -->
+          <button onclick="filterByStock()" id="stat-btn-stock" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 transition-all text-left shadow-xs group" title="Filtrar por equipos en stock de entrega inmediata">
+            <div class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-105 transition-transform">
+              <i data-lucide="zap" class="w-4 h-4 fill-current"></i>
+            </div>
+            <div>
+              <div class="text-[10px] uppercase font-bold text-emerald-800 tracking-wider flex items-center gap-1">
+                <span>Stock Inmediato</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              </div>
+              <div class="text-sm font-extrabold text-emerald-700 leading-none">
+                <span id="stat-stock-count">28</span> <span class="text-[10px] text-emerald-600 font-semibold">/ 85</span>
+              </div>
+            </div>
+          </button>
+
           <!-- Aprobados Counter -->
           <button onclick="filterByStatus('approved')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 hover:bg-emerald-100/80 transition-all text-left">
             <div class="w-6 h-6 rounded-md bg-emerald-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
@@ -298,9 +314,9 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-center">
           
           <!-- Search Input -->
-          <div class="lg:col-span-4 relative">
+          <div class="lg:col-span-3 relative">
             <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-3"></i>
-            <input type="text" id="filter-search" oninput="renderCards()" placeholder="Buscar #, modelo, departamento..." 
+            <input type="text" id="filter-search" oninput="renderCards()" placeholder="Buscar #, modelo, depto, stock..." 
               class="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50">
           </div>
 
@@ -342,13 +358,22 @@
             </select>
           </div>
 
-          <!-- Status Filter -->
+          <!-- Stock / Disponibilidad Filter -->
           <div class="lg:col-span-2">
-            <select id="filter-status" onchange="renderCards()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
-              <option value="">Estado: Todos</option>
-              <option value="pending">⏳ Solo Pendientes</option>
-              <option value="approved">✅ Solo Aprobados</option>
-              <option value="rejected">❌ Solo Con Cambios</option>
+            <select id="filter-stock" onchange="onStockFilterChange()" class="w-full py-2 px-3 text-xs sm:text-sm rounded-lg border border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 bg-emerald-50/70 font-bold text-emerald-900">
+              <option value="">Disponibilidad (Todas)</option>
+              <option value="in_stock">⚡ Entrega Inmediata (28)</option>
+              <option value="on_order">📦 Sobre Pedido (57)</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="lg:col-span-1">
+            <select id="filter-status" onchange="renderCards()" class="w-full py-2 px-2 text-xs sm:text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-milwaukee-red/30 focus:border-milwaukee-red bg-slate-50 font-medium">
+              <option value="">Estado</option>
+              <option value="pending">⏳ Pend.</option>
+              <option value="approved">✅ Aprob.</option>
+              <option value="rejected">❌ Camb.</option>
             </select>
           </div>
 
@@ -357,7 +382,7 @@
         <!-- Secondary Toolbar: Quick Bulk Actions & Views -->
         <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
           
-          <div class="flex items-center gap-2 text-slate-500">
+          <div class="flex items-center gap-2 text-slate-500 flex-wrap">
             <span>Mostrando <strong id="visible-count" class="text-slate-800">85</strong> equipos</span>
             <span class="text-slate-300">•</span>
             <button onclick="resetFilters()" class="text-milwaukee-red hover:underline font-semibold flex items-center gap-1">
@@ -365,8 +390,13 @@
             </button>
           </div>
 
-          <!-- Bulk actions -->
-          <div class="flex items-center gap-2">
+          <!-- Bulk actions & Stock toggle shortcut -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <button onclick="filterByStock()" id="quick-stock-toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-sm text-xs" title="Filtrar por los 28 equipos en stock con entrega inmediata">
+              <i data-lucide="zap" class="w-3.5 h-3.5 fill-current"></i>
+              <span id="quick-stock-text">Solo Stock Inmediato (28)</span>
+            </button>
+
             <button onclick="bulkApproveVisible()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold transition-all shadow-sm" title="Aprueba con Paloma todos los equipos que se muestran actualmente">
               <i data-lucide="check-check" class="w-3.5 h-3.5 text-emerald-600"></i>
               Aprobar visibles con Paloma
@@ -390,16 +420,33 @@
         </div>
       </div>
 
-      <!-- Instruction Hint Banner -->
+      <!-- Instruction Hint Banner with Visual Delivery Legend -->
       <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 flex items-start gap-3">
         <div class="p-2 bg-blue-100 text-blue-700 rounded-lg shrink-0 mt-0.5">
           <i data-lucide="help-circle" class="w-5 h-5"></i>
         </div>
-        <div class="text-xs sm:text-sm text-blue-900">
-          <p class="font-bold">¿Cómo validar los equipos?</p>
-          <p class="text-blue-800 text-xs mt-0.5">
-            Revisa cada montacargas. Si el modelo y las capacidades son correctos, haz clic en la <strong>Paloma (Aprobar)</strong>. Si requiere alguna corrección de mástil, tonelaje, cargador o reubicación, haz clic en la <strong>Tacha (Rechazar / Cambiar)</strong> para escribir tu observación.
-          </p>
+        <div class="text-xs sm:text-sm text-blue-900 w-full space-y-2">
+          <div>
+            <p class="font-bold">¿Cómo validar los equipos?</p>
+            <p class="text-blue-800 text-xs mt-0.5">
+              Revisa cada montacargas. Si el modelo y las capacidades son correctos, haz clic en la <strong>Paloma (Aprobar)</strong>. Si requiere alguna corrección de mástil, tonelaje, cargador o reubicación, haz clic en la <strong>Tacha (Rechazar / Cambiar)</strong> para escribir tu observación.
+            </p>
+          </div>
+          <div class="pt-2 border-t border-blue-200/80 flex flex-wrap items-center gap-2 text-xs">
+            <span class="font-bold text-slate-800">Diferenciador Visual de Entrega:</span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 font-extrabold text-[11px] shadow-xs">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              ⚡ Verde Esmeralda = Stock Entrega Inmediata (28 unidades: FPG25, FBEE25LI, 5 DR16LI, 2 CBD20-WD, 4 BT45LI)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-medium text-[11px]">
+              <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+              Gris / Neutro = Sobre Pedido / Fabricación (57 unidades)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-950 border border-amber-300 font-bold text-[11px]">
+              <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+              Ámbar / Dorado = Equipos de Relevo (2 unidades)
+            </span>
+          </div>
         </div>
       </div>
 
@@ -459,7 +506,12 @@
               Genera tu archivo de validación oficial para compartirlo con el equipo de Hangcha.
             </p>
           </div>
-          <div class="flex items-center gap-4 bg-slate-800/80 border border-slate-700 p-4 rounded-xl">
+          <div class="flex items-center gap-4 bg-slate-800/80 border border-slate-700 p-4 rounded-xl flex-wrap">
+            <div class="text-center">
+              <div class="text-2xl font-extrabold text-emerald-400" id="final-stock-stat">28</div>
+              <div class="text-[11px] font-semibold text-emerald-300 flex items-center justify-center gap-1"><i data-lucide="zap" class="w-3 h-3 fill-current"></i> Stock Inmediato</div>
+            </div>
+            <div class="h-8 w-px bg-slate-700"></div>
             <div class="text-center">
               <div class="text-2xl font-extrabold text-emerald-400" id="final-approved-stat">0</div>
               <div class="text-[11px] font-semibold text-slate-400">Aprobados</div>
@@ -831,6 +883,25 @@
       }
     };
 
+    // --- 1.1 CONFIGURACIÓN DE STOCK DE ENTREGA INMEDIATA ---
+    // Unidades con disponibilidad inmediata en bodega para entrega inmediata:
+    // - Todos los modelos FPG25 (10 unidades: IDs 37, 38, 39, 40, 41, 47, 48, 75, 76, 77)
+    // - Todos los modelos FBEE25LI (7 unidades: IDs 49, 50, 51, 52, 53, 79, 84)
+    // - 5 unidades de DR16LI (IDs: 1, 2, 3, 4, 5)
+    // - 2 unidades de CBD20-WD (IDs: 45, 46 - 100% del modelo)
+    // - 4 unidades de BT45LI (IDs: 30, 31, 32, 33)
+    // Total: 28 equipos en stock inmediato | 57 equipos sobre pedido
+    const STOCK_INMEDIATO_CONFIG = {
+      allModels: ['FPG25', 'FBEE25LI', 'CBD20-WD'],
+      specificIds: [1, 2, 3, 4, 5, 30, 31, 32, 33]
+    };
+
+    function isImmediateStock(item) {
+      if (!item) return false;
+      if (STOCK_INMEDIATO_CONFIG.allModels.includes(item.modelo)) return true;
+      if (STOCK_INMEDIATO_CONFIG.specificIds.includes(item.id)) return true;
+      return false;
+    }
 
     // --- 2. LOCAL STORAGE STATE ---
     const STORAGE_KEY = 'milwaukee_hangcha_validation_v3';
@@ -1096,6 +1167,7 @@
       const planta = document.getElementById('filter-planta')?.value || '';
       const modelo = document.getElementById('filter-modelo')?.value || '';
       const depto = document.getElementById('filter-depto')?.value || '';
+      const stockFilter = document.getElementById('filter-stock')?.value || '';
       const statusFilter = currentFilterStatus || document.getElementById('filter-status')?.value || '';
 
       return rawEquipment.filter(item => {
@@ -1106,7 +1178,9 @@
           const matchTipo = item.tipo.toLowerCase().includes(search);
           const matchDepto = item.depto.toLowerCase().includes(search);
           const matchPlanta = (item.planta1 + ' ' + item.planta2).toLowerCase().includes(search);
-          if (!matchId && !matchModelo && !matchTipo && !matchDepto && !matchPlanta) return false;
+          const inStock = isImmediateStock(item);
+          const matchStock = inStock ? ('entrega inmediata stock bodega').includes(search) : ('sobre pedido standard fabricación').includes(search);
+          if (!matchId && !matchModelo && !matchTipo && !matchDepto && !matchPlanta && !matchStock) return false;
         }
 
         // Planta
@@ -1119,6 +1193,10 @@
 
         // Depto
         if (depto && item.depto !== depto) return false;
+
+        // Stock / Disponibilidad
+        if (stockFilter === 'in_stock' && !isImmediateStock(item)) return false;
+        if (stockFilter === 'on_order' && isImmediateStock(item)) return false;
 
         // Status
         const st = validationState[item.id]?.status || 'pending';
@@ -1138,13 +1216,54 @@
       renderCards();
     }
 
+    function filterByStock() {
+      const select = document.getElementById('filter-stock');
+      if (select) {
+        select.value = (select.value === 'in_stock') ? '' : 'in_stock';
+      }
+      updateQuickStockButton();
+      goToTab('tab-catalog');
+      renderCards();
+    }
+
+    function onStockFilterChange() {
+      updateQuickStockButton();
+      renderCards();
+    }
+
+    function updateQuickStockButton() {
+      const select = document.getElementById('filter-stock');
+      const btn = document.getElementById('quick-stock-toggle');
+      const txt = document.getElementById('quick-stock-text');
+      const statBtn = document.getElementById('stat-btn-stock');
+      const isStockActive = select && select.value === 'in_stock';
+      if (btn) {
+        if (isStockActive) {
+          btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold transition-all shadow-sm text-xs ring-2 ring-emerald-400';
+          if (txt) txt.textContent = 'Ver Todos (85)';
+        } else {
+          btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-sm text-xs';
+          if (txt) txt.textContent = 'Solo Stock Inmediato (28)';
+        }
+      }
+      if (statBtn) {
+        if (isStockActive) {
+          statBtn.classList.add('ring-2', 'ring-emerald-500', 'bg-emerald-100');
+        } else {
+          statBtn.classList.remove('ring-2', 'ring-emerald-500', 'bg-emerald-100');
+        }
+      }
+    }
+
     function resetFilters() {
       document.getElementById('filter-search').value = '';
       document.getElementById('filter-planta').value = '';
       document.getElementById('filter-modelo').value = '';
       document.getElementById('filter-depto').value = '';
       document.getElementById('filter-status').value = '';
+      if (document.getElementById('filter-stock')) document.getElementById('filter-stock').value = '';
       currentFilterStatus = '';
+      updateQuickStockButton();
       renderCards();
     }
 
@@ -1206,10 +1325,11 @@
           const v = validationState[item.id] || { status: null, notes: '', tags: [] };
           const isApproved = v.status === 'approved';
           const isRejected = v.status === 'rejected';
+          const inStock = isImmediateStock(item);
           const asset = MODEL_ASSETS[item.modelo] || { image: 'logo-hangcha.png', pdf: null, seriesName: item.tipo, tagline: 'Equipo Hangcha' };
 
-          let cardBorder = isRelevo ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200';
-          let cardBg = isRelevo ? 'bg-amber-50/40' : 'bg-white';
+          let cardBorder = isRelevo ? 'border-amber-300 ring-1 ring-amber-300' : (inStock ? 'border-emerald-400 ring-1 ring-emerald-400/40' : 'border-slate-200');
+          let cardBg = isRelevo ? 'bg-amber-50/40' : (inStock ? 'bg-emerald-50/20' : 'bg-white');
           let statusBadge = `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200"><span class="w-2 h-2 rounded-full bg-slate-400"></span> Pendiente</span>`;
 
           if (isApproved) {
@@ -1220,13 +1340,31 @@
             statusBadge = `<span class="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 border border-rose-300"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Con Cambios ✕</span>`;
           }
 
+          let imgContainerClass = 'bg-slate-50 border border-slate-200/80';
+          let imgBorderDivider = 'border-slate-200';
+          let imgShadow = 'drop-shadow-sm';
+
+          if (inStock && isRelevo) {
+            imgContainerClass = 'bg-gradient-to-b from-amber-100/90 via-emerald-50/80 to-white border-2 border-emerald-500 ring-2 ring-amber-300 shadow-sm';
+            imgBorderDivider = 'border-emerald-300';
+            imgShadow = 'drop-shadow-[0_6px_14px_rgba(16,185,129,0.45)]';
+          } else if (inStock) {
+            imgContainerClass = 'bg-gradient-to-b from-emerald-100/90 via-emerald-50/70 to-white border-2 border-emerald-500 ring-2 ring-emerald-400/30 shadow-sm shadow-emerald-500/10';
+            imgBorderDivider = 'border-emerald-300';
+            imgShadow = 'drop-shadow-[0_6px_14px_rgba(16,185,129,0.45)]';
+          } else if (isRelevo) {
+            imgContainerClass = 'bg-amber-100/60 border border-amber-300/80';
+            imgBorderDivider = 'border-amber-200';
+            imgShadow = 'drop-shadow-sm';
+          }
+
           const availableTags = ['Capacidad Carga', 'Altura Mástil', 'Voltaje/Cargador', 'Modelo Incorrecto', 'Reubicar Planta', 'Tipo de Equipo'];
 
           cardsHtml += `
             <div class="${cardBg} rounded-2xl border ${cardBorder} shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-between">
               
-              <div class="${isRelevo ? 'bg-amber-400 text-slate-950 font-black' : 'bg-slate-900 text-white'} px-4 py-2.5 flex items-center justify-between border-b ${isRelevo ? 'border-amber-400' : 'border-slate-800'}">
-                <div class="flex items-center gap-2.5">
+              <div class="${isRelevo ? 'bg-amber-400 text-slate-950 font-black' : (inStock ? 'bg-slate-900 text-white border-b-2 border-emerald-500' : 'bg-slate-900 text-white')} px-4 py-2.5 flex items-center justify-between border-b ${isRelevo ? 'border-amber-400' : 'border-slate-800'}">
+                <div class="flex items-center gap-2 flex-wrap">
                   <span class="font-display font-black text-sm ${isRelevo ? 'bg-slate-950 text-white' : 'bg-milwaukee-red text-white'} px-2.5 py-0.5 rounded shadow">
                     #${String(item.id).padStart(2, '0')}
                   </span>
@@ -1234,17 +1372,33 @@
                     MONTACARGAS ${item.modelo}
                   </span>
                   ${isRelevo ? '<span class="bg-slate-950 text-amber-300 text-[10px] font-black px-2 py-0.5 rounded uppercase">Relevo</span>' : ''}
+                  ${inStock ? '<span class="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase flex items-center gap-1 shadow-xs"><i data-lucide="zap" class="w-2.5 h-2.5 fill-current"></i> Stock Inmediato</span>' : ''}
                 </div>
                 <div>${statusBadge}</div>
               </div>
 
               <div class="p-4 flex-1">
                 <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
-                  <div class="sm:col-span-5 flex flex-col items-center justify-center ${isRelevo ? 'bg-amber-100/60 border border-amber-300/80' : 'bg-slate-50 border border-slate-200/80'} rounded-xl p-3">
-                    <div class="w-full h-36 flex items-center justify-center cursor-pointer" onclick="openDatasheetModal(${item.id})">
-                      <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain drop-shadow-sm hover:scale-105 transition-transform">
+                  <div class="sm:col-span-5 flex flex-col items-center justify-center ${imgContainerClass} rounded-xl p-3 relative transition-all">
+                    <!-- Delivery Stock Pill Header -->
+                    <div class="w-full flex items-center justify-between mb-1.5 px-0.5">
+                      ${inStock ? `
+                        <span class="inline-flex items-center gap-1 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full shadow-xs">
+                          <i data-lucide="zap" class="w-2.5 h-2.5 fill-current"></i> Stock Inmediato
+                        </span>
+                        <span class="text-[10px] text-emerald-700 font-extrabold uppercase">Listo en bodega</span>
+                      ` : `
+                        <span class="inline-flex items-center gap-1 bg-slate-200 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          📦 Sobre Pedido
+                        </span>
+                        <span class="text-[10px] text-slate-400 font-medium">Fabricación</span>
+                      `}
                     </div>
-                    <div class="w-full grid grid-cols-2 gap-1.5 mt-2.5 pt-2 border-t ${isRelevo ? 'border-amber-200' : 'border-slate-200'}">
+
+                    <div class="w-full h-36 flex items-center justify-center cursor-pointer" onclick="openDatasheetModal(${item.id})">
+                      <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain ${imgShadow} hover:scale-105 transition-transform duration-200">
+                    </div>
+                    <div class="w-full grid grid-cols-2 gap-1.5 mt-2.5 pt-2 border-t ${imgBorderDivider}">
                       ${asset.pdf ? `<a href="${asset.pdf}" target="_blank" class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold"><i data-lucide="file-text" class="w-3 h-3 text-milwaukee-red"></i> PDF</a>` : '<span class="text-[10px] text-slate-400 text-center py-1.5">Sin PDF</span>'}
                       <button onclick="openDatasheetModal(${item.id})" class="inline-flex items-center justify-center gap-1 py-1.5 px-2 rounded-lg bg-white text-slate-800 border border-slate-300 text-[10px] font-bold">Ficha</button>
                     </div>
@@ -1258,6 +1412,7 @@
                       <div class="flex justify-between py-1"><span class="text-slate-500">Poder:</span><strong>${item.combustible} • ${item.cargador}</strong></div>
                       <div class="flex justify-between py-1"><span class="text-slate-500">Depto:</span><strong>${item.depto}</strong></div>
                       <div class="flex justify-between py-1"><span class="text-slate-500">Planta:</span><strong class="bg-slate-200 px-1.5 rounded">${item.planta1}</strong></div>
+                      <div class="flex justify-between py-1"><span class="text-slate-500">Disponibilidad:</span><strong class="${inStock ? 'text-emerald-700 font-extrabold flex items-center gap-1' : 'text-slate-600 font-semibold'}">${inStock ? '<i data-lucide="zap" class="w-3 h-3 text-emerald-600 fill-current"></i> Entrega Inmediata' : 'Sobre Pedido'}</strong></div>
                     </div>
                   </div>
                 </div>
@@ -1327,11 +1482,21 @@
           const v = validationState[item.id] || { status: null, notes: '', tags: [] };
           const isApproved = v.status === 'approved';
           const isRejected = v.status === 'rejected';
+          const inStock = isImmediateStock(item);
           const asset = MODEL_ASSETS[item.modelo] || { image: 'logo-hangcha.png', pdf: null, seriesName: item.tipo };
 
           let rowBg = isRelevo ? 'bg-amber-50/50 hover:bg-amber-100/60' : 'hover:bg-slate-50/90';
           if (isApproved) rowBg = isRelevo ? 'bg-emerald-50/70 hover:bg-emerald-100/80 ring-1 ring-emerald-300' : 'bg-emerald-50/50 hover:bg-emerald-100/70';
           if (isRejected) rowBg = isRelevo ? 'bg-rose-50/70 hover:bg-rose-100/80 ring-1 ring-rose-300' : 'bg-rose-50/50 hover:bg-rose-100/70';
+
+          let thumbClass = 'bg-white border-slate-200';
+          if (inStock && isRelevo) {
+            thumbClass = 'bg-amber-50 border-2 border-emerald-500 ring-2 ring-amber-300 shadow-sm relative';
+          } else if (inStock) {
+            thumbClass = 'bg-emerald-50 border-2 border-emerald-500 ring-2 ring-emerald-400/40 shadow-sm relative';
+          } else if (isRelevo) {
+            thumbClass = 'bg-amber-50 border border-amber-300';
+          }
 
           const availableTags = ['Capacidad Carga', 'Altura Mástil', 'Voltaje/Cargador', 'Modelo Incorrecto', 'Reubicar Planta', 'Tipo de Equipo'];
 
@@ -1347,17 +1512,19 @@
 
               <!-- FOTO THUMBNAIL -->
               <td class="p-2 text-center">
-                <div class="w-14 h-11 mx-auto bg-white rounded-lg border ${isRelevo ? 'border-amber-300' : 'border-slate-200'} p-0.5 flex items-center justify-center cursor-pointer hover:shadow-md hover:scale-105 transition-all" onclick="openDatasheetModal(${item.id})">
-                  <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain">
+                <div class="w-14 h-11 mx-auto rounded-lg border ${thumbClass} p-0.5 flex items-center justify-center cursor-pointer hover:shadow-md hover:scale-105 transition-all" onclick="openDatasheetModal(${item.id})" title="${inStock ? '⚡ Stock de Entrega Inmediata' : 'Sobre Pedido'}">
+                  <img src="${asset.image}" alt="${item.modelo}" class="max-h-full max-w-full object-contain ${inStock ? 'drop-shadow-[0_2px_6px_rgba(16,185,129,0.5)]' : ''}">
+                  ${inStock ? '<span class="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs" title="Stock Inmediato">⚡</span>' : ''}
                 </div>
               </td>
 
               <!-- MODELO -->
               <td class="p-3 font-bold text-slate-900 cursor-pointer" onclick="openDatasheetModal(${item.id})">
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="text-xs font-black ${isRelevo ? 'bg-amber-200 text-amber-950 border border-amber-300' : 'bg-blue-50 text-hangcha-blue border border-blue-200'} px-2 py-0.5 rounded">
                     ${item.modelo}
                   </span>
+                  ${inStock ? '<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-[10px] font-black px-1.5 py-0.5 rounded inline-flex items-center gap-0.5"><i data-lucide="zap" class="w-2.5 h-2.5 text-emerald-600 fill-current"></i> Inmediata</span>' : ''}
                 </div>
                 <div class="text-[10px] text-slate-500 mt-0.5 font-normal truncate max-w-[130px]">${item.marca}</div>
               </td>
@@ -1641,6 +1808,12 @@
       document.getElementById('stat-rejected').textContent = rejected;
       document.getElementById('stat-pending').textContent = pending;
 
+      const stockTotal = rawEquipment.filter(isImmediateStock).length;
+      const statStockEl = document.getElementById('stat-stock-count');
+      if (statStockEl) statStockEl.textContent = stockTotal;
+      const finalStockEl = document.getElementById('final-stock-stat');
+      if (finalStockEl) finalStockEl.textContent = stockTotal;
+
       // Mobile count
       const mob = document.getElementById('mobile-reviewed-count');
       if (mob) mob.textContent = reviewed;
@@ -1708,14 +1881,27 @@
         };
 
         const firstItem = g.items[0];
+        const stockCount = g.items.filter(isImmediateStock).length;
+        const totalCount = g.items.length;
+        const isAllStock = stockCount === totalCount && totalCount > 0;
+
+        let showcaseBg = 'bg-gradient-to-b from-slate-100 via-slate-50/60 to-white border-slate-100';
+        let showcaseShadow = 'drop-shadow-md';
+        if (isAllStock) {
+          showcaseBg = 'bg-gradient-to-b from-emerald-100/80 via-emerald-50/50 to-white border-b-2 border-emerald-400';
+          showcaseShadow = 'drop-shadow-[0_8px_18px_rgba(16,185,129,0.45)]';
+        } else if (stockCount > 0) {
+          showcaseBg = 'bg-gradient-to-b from-emerald-50/60 via-slate-50/60 to-white border-b border-emerald-300';
+          showcaseShadow = 'drop-shadow-[0_6px_14px_rgba(16,185,129,0.35)]';
+        }
 
         html += `
           <!-- SHOWROOM CARD POR MODELO -->
-          <div class="bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+          <div class="bg-white rounded-3xl border ${stockCount > 0 ? 'border-emerald-300 shadow-sm' : 'border-slate-200/90 shadow-sm'} hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
             
             <div>
               <!-- 1. ESCAPARATE DE FOTOGRAFÍA ESTUDIO INDUSTRIAL -->
-              <div class="relative w-full h-56 sm:h-64 bg-gradient-to-b from-slate-100 via-slate-50/60 to-white p-6 flex items-center justify-center border-b border-slate-100 overflow-hidden">
+              <div class="relative w-full h-56 sm:h-64 ${showcaseBg} p-6 flex items-center justify-center border-b overflow-hidden transition-all">
                 
                 <!-- Floating Badges -->
                 <div class="absolute top-3.5 left-3.5 z-10 flex items-center gap-2">
@@ -1727,16 +1913,25 @@
                   </span>
                 </div>
 
-                <div class="absolute top-3.5 right-3.5 z-10">
+                <div class="absolute top-3.5 right-3.5 z-10 flex flex-col items-end gap-1.5">
                   <span class="bg-milwaukee-red text-white font-extrabold text-xs px-3 py-1 rounded-xl shadow-md tracking-wide">
-                    ${g.items.length} Unidades
+                    ${totalCount} Unidades
                   </span>
+                  ${stockCount > 0 ? `
+                    <span class="bg-emerald-600 text-white font-extrabold text-[11px] px-2.5 py-0.5 rounded-lg shadow-md tracking-wide flex items-center gap-1 border border-emerald-400">
+                      <i data-lucide="zap" class="w-3 h-3 fill-current"></i> ${stockCount} en Stock Inmediato ${isAllStock ? '(100%)' : ''}
+                    </span>
+                  ` : `
+                    <span class="bg-slate-800 text-slate-300 font-semibold text-[10px] px-2 py-0.5 rounded-lg shadow-xs border border-slate-700">
+                      📦 Sobre Pedido
+                    </span>
+                  `}
                 </div>
 
                 <!-- Product Image with balanced studio ratio and shadow -->
                 <div class="w-full h-full flex items-center justify-center cursor-pointer" onclick="openDatasheetModal(${firstItem.id})">
                   <img src="${asset.image}" alt="${g.modelo}" 
-                    class="max-h-44 sm:max-h-48 max-w-[85%] w-auto h-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300">
+                    class="max-h-44 sm:max-h-48 max-w-[85%] w-auto h-auto object-contain filter ${showcaseShadow} group-hover:scale-105 transition-transform duration-300">
                 </div>
 
                 <!-- Subtle bottom brand watermark -->
@@ -1784,6 +1979,25 @@
                     <span class="text-[10px] text-slate-400 font-medium">Alimentación</span>
                   </div>
 
+                </div>
+
+                <!-- Disponibilidad Logística Banner -->
+                <div class="p-2.5 rounded-xl border ${stockCount > 0 ? 'bg-emerald-50/80 border-emerald-300' : 'bg-slate-50 border-slate-200'} flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-1.5 font-bold ${stockCount > 0 ? 'text-emerald-900' : 'text-slate-600'}">
+                    <i data-lucide="${stockCount > 0 ? 'zap' : 'clock'}" class="w-4 h-4 ${stockCount > 0 ? 'text-emerald-600 fill-current' : 'text-slate-400'}"></i>
+                    <span>Disponibilidad en Bodega:</span>
+                  </div>
+                  <div>
+                    ${stockCount > 0 ? `
+                      <span class="bg-emerald-600 text-white font-black text-[11px] px-2.5 py-1 rounded-lg shadow-xs inline-flex items-center gap-1">
+                        ⚡ ${stockCount} de ${totalCount} en Entrega Inmediata ${isAllStock ? '(100%)' : ''}
+                      </span>
+                    ` : `
+                      <span class="text-slate-500 font-semibold text-[11px] bg-white border border-slate-200 px-2 py-0.5 rounded">
+                        Fabricación estándar / Sobre pedido
+                      </span>
+                    `}
+                  </div>
                 </div>
 
                 <!-- 3. BARRA DE ESTADO DE VALIDACIÓN DEL GRUPO -->
@@ -1968,6 +2182,7 @@
         'Department Owner',
         'Planta Milwaukee',
         'Planta Milwaukee2',
+        'DISPONIBILIDAD (STOCK)',
         // Validation columns
         'ESTADO DE VALIDACIÓN',
         'OBSERVACIONES / CAMBIOS SOLICITADOS',
@@ -1982,6 +2197,9 @@
         if (v.status === 'approved') statusText = 'APROBADO (PALOMA) ✓';
         if (v.status === 'rejected') statusText = 'REQUIERE CAMBIO (TACHA) ✕';
 
+        const inStock = isImmediateStock(item);
+        const stockText = inStock ? '⚡ ENTREGA INMEDIATA (STOCK)' : 'SOBRE PEDIDO (ESTÁNDAR)';
+
         rows.push([
           item.id,
           item.marca,
@@ -1995,6 +2213,7 @@
           item.depto,
           item.planta1,
           item.planta2,
+          stockText,
           statusText,
           v.notes || '',
           (v.tags || []).join(', '),
@@ -2004,6 +2223,9 @@
       });
 
       // Metadata summary sheet
+      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
+      const standardTotal = rawEquipment.length - stockTotal;
+
       const summaryRows = [
         ['REPORTE DE VALIDACIÓN DE LEVANTAMIENTO DE FLOTA'],
         ['Proyecto:', 'Milwaukee Tool & Hangcha México'],
@@ -2015,6 +2237,8 @@
         [''],
         ['RESUMEN DE EQUIPOS'],
         ['Total Equipos Relevados:', rawEquipment.length],
+        ['Equipos en Stock Inmediato (⚡):', `${stockTotal} de ${rawEquipment.length} (${Math.round(stockTotal/rawEquipment.length*100)}%)`],
+        ['Equipos Sobre Pedido (📦):', `${standardTotal} de ${rawEquipment.length} (${Math.round(standardTotal/rawEquipment.length*100)}%)`],
         ['Aprobados (Paloma):', document.getElementById('final-approved-stat').textContent],
         ['Requieren Cambio (Tacha):', document.getElementById('final-rejected-stat').textContent],
         ['Pendientes:', document.getElementById('final-pending-stat').textContent]
@@ -2027,12 +2251,12 @@
       wsEquipos['!cols'] = [
         { wch: 10 }, { wch: 12 }, { wch: 16 }, { wch: 14 }, { wch: 30 },
         { wch: 18 }, { wch: 18 }, { wch: 16 }, { wch: 16 }, { wch: 18 },
-        { wch: 16 }, { wch: 16 }, { wch: 26 }, { wch: 35 }, { wch: 25 },
+        { wch: 16 }, { wch: 16 }, { wch: 30 }, { wch: 26 }, { wch: 35 }, { wch: 25 },
         { wch: 22 }, { wch: 22 }
       ];
 
       const wsResumen = XLSX.utils.aoa_to_sheet(summaryRows);
-      wsResumen['!cols'] = [{ wch: 25 }, { wch: 45 }];
+      wsResumen['!cols'] = [{ wch: 28 }, { wch: 45 }];
 
       XLSX.utils.book_append_sheet(wb, wsEquipos, 'Validación Equipos');
       XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Ejecutivo');
@@ -2048,6 +2272,8 @@
       const approved = document.getElementById('final-approved-stat').textContent;
       const rejected = document.getElementById('final-rejected-stat').textContent;
       const pending = document.getElementById('final-pending-stat').textContent;
+      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
+      const standardTotal = rawEquipment.length - stockTotal;
 
       let msg = `*VALIDACIÓN DE EQUIPOS HANGCHA - MILWAUKEE*
 `;
@@ -2057,6 +2283,10 @@
 
 `;
       msg += `*RESUMEN GLOBAL (85 Equipos):*
+`;
+      msg += `⚡ En Stock Inmediato: ${stockTotal} equipos
+`;
+      msg += `📦 Sobre Pedido: ${standardTotal} equipos
 `;
       msg += `✅ Aprobados: ${approved}
 `;
@@ -2078,7 +2308,8 @@
         msg += `*DETALLE DE EQUIPOS CON CAMBIO / OBSERVACIÓN:*
 `;
         rejectedItems.forEach(({ item, v }) => {
-          msg += `• *Equipo #${item.id}* (${item.modelo} - ${item.tipo}):
+          const inStock = isImmediateStock(item);
+          msg += `• *Equipo #${item.id}* (${item.modelo} - ${item.tipo} | ${inStock ? '⚡ Stock Inmediato' : 'Sobre Pedido'}):
 `;
           if (v.tags && v.tags.length) msg += `  [Tags: ${v.tags.join(', ')}]
 `;
@@ -2118,6 +2349,8 @@
       const approved = document.getElementById('final-approved-stat').textContent;
       const rejected = document.getElementById('final-rejected-stat').textContent;
       const pending = document.getElementById('final-pending-stat').textContent;
+      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
+      const standardTotal = rawEquipment.length - stockTotal;
 
       const subject = `Validación Técnica Flota Hangcha-Milwaukee - ${reviewer}`;
       
@@ -2129,6 +2362,10 @@ Te comparto el resultado de la validación del levantamiento de montacargas Hang
       body += `RESUMEN DE EVALUACIÓN:
 `;
       body += `- Total de Equipos: 85
+`;
+      body += `- Equipos en Stock de Entrega Inmediata (⚡): ${stockTotal} de 85
+`;
+      body += `- Equipos Sobre Pedido (📦): ${standardTotal} de 85
 `;
       body += `- Aprobados Conformes (Paloma): ${approved}
 `;
@@ -2150,7 +2387,8 @@ Te comparto el resultado de la validación del levantamiento de montacargas Hang
         body += `EQUIPOS CON OBSERVACIONES O CAMBIOS:
 `;
         rejectedItems.forEach(({ item, v }) => {
-          body += `• Equipo #${item.id} (${item.modelo} | ${item.planta1}):
+          const inStock = isImmediateStock(item);
+          body += `• Equipo #${item.id} (${item.modelo} | ${item.planta1} | ${inStock ? '⚡ Stock Inmediato' : 'Sobre Pedido'}):
 `;
           body += `  Observación: ${v.notes || 'Revisar especificación'}
 `;
@@ -2190,6 +2428,8 @@ ${reviewer}
       const approved = document.getElementById('final-approved-stat').textContent;
       const rejected = document.getElementById('final-rejected-stat').textContent;
       const pending = document.getElementById('final-pending-stat').textContent;
+      const stockTotal = rawEquipment.filter(it => isImmediateStock(it)).length;
+      const standardTotal = rawEquipment.length - stockTotal;
 
       let text = `VALIDACIÓN TÉCNICA - LEVANTAMIENTO HANGCHA / MILWAUKEE
 `;
@@ -2200,6 +2440,10 @@ ${reviewer}
       text += `----------------------------------------
 `;
       text += `Total Equipos: 85
+`;
+      text += `⚡ Stock Entrega Inmediata: ${stockTotal}
+`;
+      text += `📦 Sobre Pedido: ${standardTotal}
 `;
       text += `Aprobados: ${approved}
 `;
@@ -2221,7 +2465,8 @@ ${reviewer}
 DETALLE DE CAMBIOS SOLICITADOS:
 `;
         rejectedItems.forEach(({ item, v }) => {
-          text += `- Equipo #${item.id} [${item.modelo} - ${item.tipo}] (${item.planta1}):
+          const inStock = isImmediateStock(item);
+          text += `- Equipo #${item.id} [${item.modelo} - ${item.tipo}] (${item.planta1} | ${inStock ? '⚡ Stock Inmediato' : 'Sobre Pedido'}):
 `;
           text += `  "${v.notes || 'Observación registrada'}"
 `;
@@ -2374,8 +2619,9 @@ DETALLE DE CAMBIOS SOLICITADOS:
       <div class="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
         
         <!-- Large Photo & PDF download bar -->
-        <div class="bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center relative">
-          <img id="modal-img" src="logo-hangcha.png" alt="Equipo" class="max-h-56 max-w-full object-contain drop-shadow-md">
+        <div id="modal-img-container" class="bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center relative transition-all">
+          <div id="modal-stock-badge-container" class="absolute top-3 left-3"></div>
+          <img id="modal-img" src="logo-hangcha.png" alt="Equipo" class="max-h-56 max-w-full object-contain drop-shadow-md transition-all">
           
           <div class="mt-4 flex flex-wrap items-center justify-center gap-3 w-full">
             <a id="modal-pdf-link" href="#" target="_blank" class="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl shadow transition-all">
@@ -2434,10 +2680,39 @@ DETALLE DE CAMBIOS SOLICITADOS:
         tagline: 'Levantamiento Hangcha'
       };
 
+      const inStock = isImmediateStock(item);
+      const imgContainer = document.getElementById('modal-img-container');
+      const modalImg = document.getElementById('modal-img');
+      const badgeContainer = document.getElementById('modal-stock-badge-container');
+
+      if (inStock) {
+        if (imgContainer) imgContainer.className = "rounded-2xl p-6 border-2 border-emerald-500 bg-gradient-to-b from-emerald-100/90 via-emerald-50/70 to-white ring-4 ring-emerald-400/20 flex flex-col items-center justify-center relative transition-all shadow-md";
+        if (modalImg) modalImg.className = "max-h-56 max-w-full object-contain drop-shadow-[0_10px_20px_rgba(16,185,129,0.45)] transition-all";
+        if (badgeContainer) {
+          badgeContainer.innerHTML = `
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-md border border-emerald-400">
+              <i data-lucide="zap" class="w-3.5 h-3.5 fill-white"></i>
+              STOCK ENTREGA INMEDIATA
+            </span>
+          `;
+        }
+      } else {
+        if (imgContainer) imgContainer.className = "bg-gradient-to-b from-slate-50 to-slate-100 rounded-2xl p-6 border border-slate-200 flex flex-col items-center justify-center relative transition-all";
+        if (modalImg) modalImg.className = "max-h-56 max-w-full object-contain drop-shadow-md transition-all";
+        if (badgeContainer) {
+          badgeContainer.innerHTML = `
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-200/90 text-slate-700 border border-slate-300">
+              <i data-lucide="package" class="w-3 h-3 text-slate-500"></i>
+              Sobre Pedido
+            </span>
+          `;
+        }
+      }
+
       document.getElementById('modal-eq-badge').textContent = '#' + String(item.id).padStart(2, '0');
       document.getElementById('modal-title').textContent = 'Montacargas ' + item.modelo + ' • ' + item.tipo;
       document.getElementById('modal-subtitle').textContent = asset.seriesName + ' — ' + item.depto + ' (' + item.planta1 + ')';
-      document.getElementById('modal-img').src = asset.image;
+      if (modalImg) modalImg.src = asset.image;
 
       const pdfLink = document.getElementById('modal-pdf-link');
       if (asset.pdf) {
@@ -2448,8 +2723,33 @@ DETALLE DE CAMBIOS SOLICITADOS:
         pdfLink.classList.add('hidden');
       }
 
+      // Validation status badge
+      const v = validationState[item.id];
+      const statusBadge = document.getElementById('modal-status-badge');
+      if (statusBadge) {
+        if (v?.status === 'approved') {
+          statusBadge.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-300"><i data-lucide="check-circle" class="w-4 h-4"></i> Aprobado</span>';
+        } else if (v?.status === 'rejected') {
+          statusBadge.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold text-rose-700 bg-rose-100 px-3 py-1.5 rounded-xl border border-rose-300"><i data-lucide="alert-triangle" class="w-4 h-4"></i> Requiere Cambio</span>';
+        } else {
+          statusBadge.innerHTML = '<span class="inline-flex items-center gap-1 text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-300"><i data-lucide="clock" class="w-4 h-4"></i> Pendiente</span>';
+        }
+      }
+
       // Specs
       const specsHtml = `
+        <div class="p-2.5 rounded-xl border ${inStock ? 'bg-emerald-50/90 border-emerald-300 text-emerald-950 ring-1 ring-emerald-400/30' : 'bg-white border-slate-100'} sm:col-span-2">
+          <span class="text-slate-400 block text-[10px] uppercase font-bold">Disponibilidad Logística / Estatus de Entrega</span>
+          <div class="flex items-center justify-between mt-0.5">
+            <strong class="text-xs font-black ${inStock ? 'text-emerald-700 flex items-center gap-1.5' : 'text-slate-800 flex items-center gap-1.5'}">
+              <i data-lucide="${inStock ? 'zap' : 'package'}" class="w-4 h-4 ${inStock ? 'text-emerald-600 fill-emerald-600' : 'text-slate-400'}"></i>
+              ${inStock ? '⚡ Stock de Entrega Inmediata (Listo en Bodega Hangcha)' : 'Sobre Pedido / Producción Estándar'}
+            </strong>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${inStock ? 'bg-emerald-600 text-white shadow-sm' : 'bg-slate-200 text-slate-700'}">
+              ${inStock ? 'Entrega Rápida' : 'Lead Time Normal'}
+            </span>
+          </div>
+        </div>
         <div class="p-2.5 bg-white rounded-xl border border-slate-100">
           <span class="text-slate-400 block text-[10px] uppercase font-bold">Capacidad de Carga</span>
           <strong class="text-sm font-black text-slate-900">${item.capacidadCarga} Ton (${Math.round(parseFloat(item.capacidadCarga)*1000)} kg)</strong>
